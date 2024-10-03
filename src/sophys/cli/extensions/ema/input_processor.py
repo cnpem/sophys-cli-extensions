@@ -45,6 +45,30 @@ def add_detectors(line: str, source: DataSource):
     return f"{plan_name} -d {detectors_str} {args}"
 
 
+def add_metadata(line: str, source: DataSource):
+    """
+    Insert '--md ...' directive into 'line', with metadata entries taken from 'source'.
+
+    This function only inserts metadata related to detector collection code (i.e. baselines and monitors).
+    """
+    before_str = ",".join(source.get(DataSource.DataType.BEFORE))
+    during_str = ",".join(source.get(DataSource.DataType.DURING))
+    after_str = ",".join(source.get(DataSource.DataType.AFTER))
+
+    md = ""
+    if len(before_str) != 0:
+        md += f"READ_BEFORE={before_str} "
+    if len(during_str) != 0:
+        md += f"READ_DURING={during_str} "
+    if len(after_str) != 0:
+        md += f"READ_AFTER={after_str} "
+
+    if len(md) == 0:
+        return line
+
+    return f"{line.strip()} --md {md.strip()}"
+
+
 def input_processor(lines, plan_whitelist: dict, data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
@@ -55,6 +79,7 @@ def input_processor(lines, plan_whitelist: dict, data_source: DataSource):
     logger.debug(f"Processing lines: {'\n'.join(lines)}")
     processors = [
         functools.partial(add_detectors, source=data_source),
+        functools.partial(add_metadata, source=data_source),
     ]
 
     new_lines = []

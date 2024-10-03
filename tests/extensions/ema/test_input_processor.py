@@ -1,6 +1,6 @@
 import pytest
 
-from sophys.cli.extensions.ema.input_processor import LocalDataSource, add_detectors
+from sophys.cli.extensions.ema.input_processor import LocalDataSource, add_detectors, add_metadata
 
 
 @pytest.fixture
@@ -28,3 +28,13 @@ def test_local_data_source_get(local_data_source):
     ])
 def test_add_detectors(sample_line, expected, local_data_source):
     assert (ret := add_detectors(sample_line, local_data_source)) == expected, ret
+
+
+@pytest.mark.parametrize(
+    "sample_line,expected", [
+        ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
+        ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
+        ("super_scan whatever whatever", "super_scan whatever whatever --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
+    ])
+def test_add_metadata(sample_line, expected, local_data_source):
+    assert (ret := add_metadata(sample_line, local_data_source)) == expected, ret
