@@ -1,11 +1,9 @@
-from .. import render_custom_magics
+from .. import render_custom_magics, setup_remote_session_handler
 
 from ..plan_magics import get_plans, register_magic_for_plan, RealMagics, ModeOfOperation
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
-
-from ...http_utils import RemoteSessionHandler
 
 
 PLAN_WHITELIST = {
@@ -35,14 +33,7 @@ def load_ipython_extension(ipython):
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
-        _remote_session_handler = RemoteSessionHandler("http://***REMOVED***:***REMOVED***")
-        _remote_session_handler.start()
-        _remote_session_handler.ask_for_authentication()
-
-        ipython.push({"_remote_session_handler": _remote_session_handler})
-
-        ipython.run_line_magic("reload_devices", "")
-        ipython.run_line_magic("reload_plans", "")
+        setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
         ipython.push({"P": set(i[0] for i in get_plans("common", PLAN_WHITELIST))})
 

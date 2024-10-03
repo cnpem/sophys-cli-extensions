@@ -1,13 +1,11 @@
 import functools
 
-from .. import render_custom_magics
+from .. import render_custom_magics, setup_remote_session_handler
 
 from ..plan_magics import get_plans, register_magic_for_plan, RealMagics, ModeOfOperation
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
-
-from ...http_utils import RemoteSessionHandler
 
 from .input_processor import LocalDataSource, input_processor
 
@@ -19,6 +17,18 @@ PLAN_WHITELIST = {
     "grid_scan": ("grid_scan", PlanGridScan),
     "adaptive_scan": ("adaptive_scan", PlanAdaptiveScan),
 }
+
+
+def setup_input_transformer(ipython):
+    data_path = "ema_sophys_cli_config.csv"
+
+    try:
+        data_source = LocalDataSource(data_path)
+    except FileNotFoundError:
+        print(f"Failed to load file at '{data_path}'. No extra input processing will be done.")
+    else:
+        proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
+        ipython.input_transformers_cleanup.append(proc)
 
 
 def load_ipython_extension(ipython):
@@ -39,27 +49,11 @@ def load_ipython_extension(ipython):
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
-        _remote_session_handler = RemoteSessionHandler("http://***REMOVED***:***REMOVED***")
-        _remote_session_handler.start()
-        _remote_session_handler.ask_for_authentication()
-
-        ipython.push({"_remote_session_handler": _remote_session_handler})
-
-        ipython.run_line_magic("reload_devices", "")
-        ipython.run_line_magic("reload_plans", "")
+        setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
         ipython.push({"P": set(i[0] for i in get_plans("ema", PLAN_WHITELIST))})
 
-    if local_mode:
-        data_path = "ema_sophys_cli_config.csv"
-
-        try:
-            data_source = LocalDataSource(data_path)
-        except FileNotFoundError:
-            print(f"Failed to load file at '{data_path}'. No extra input processing will be done.")
-        else:
-            proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
-            ipython.input_transformers_cleanup.append(proc)
+    setup_input_transformer(ipython)
 
 
 def unload_ipython_extension(ipython):
