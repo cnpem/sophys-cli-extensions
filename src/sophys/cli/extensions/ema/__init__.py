@@ -1,3 +1,5 @@
+import functools
+
 from .. import render_custom_magics
 
 from ..plan_magics import get_plans, register_magic_for_plan, RealMagics, ModeOfOperation
@@ -6,6 +8,8 @@ from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 
 from ...http_utils import RemoteSessionHandler
+
+from .input_processor import LocalDataSource, input_processor
 
 
 PLAN_WHITELIST = {
@@ -45,6 +49,11 @@ def load_ipython_extension(ipython):
         ipython.run_line_magic("reload_plans", "")
     else:
         ipython.push({"P": set(i[0] for i in get_plans("ema", PLAN_WHITELIST))})
+
+    if local_mode:
+        data_source = LocalDataSource("ema_data_source.csv")
+        proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
+        ipython.input_transformers_cleanup.append(proc)
 
 
 def unload_ipython_extension(ipython):

@@ -1,0 +1,9 @@
+type,name
+detector,abc1
+before,xyz1
+during,mno1
+after,rst1
+detector,abc2
+detector,abc3
+after,rst2
+during,mno2
