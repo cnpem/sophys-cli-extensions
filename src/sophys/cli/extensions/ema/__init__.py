@@ -51,9 +51,15 @@ def load_ipython_extension(ipython):
         ipython.push({"P": set(i[0] for i in get_plans("ema", PLAN_WHITELIST))})
 
     if local_mode:
-        data_source = LocalDataSource("ema_data_source.csv")
-        proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
-        ipython.input_transformers_cleanup.append(proc)
+        data_path = "ema_sophys_cli_config.csv"
+
+        try:
+            data_source = LocalDataSource(data_path)
+        except FileNotFoundError:
+            print(f"Failed to load file at '{data_path}'. No extra input processing will be done.")
+        else:
+            proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
+            ipython.input_transformers_cleanup.append(proc)
 
 
 def unload_ipython_extension(ipython):
