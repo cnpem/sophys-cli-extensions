@@ -71,11 +71,19 @@ def add_metadata(line: str, source: DataSource):
     return f"{line.strip()} --md {md.strip()}"
 
 
-def input_processor(lines, plan_whitelist: dict[str, PlanInformation], data_source: DataSource):
+def input_processor(lines: list[str], plan_whitelist: dict[str, PlanInformation], data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 
-    if not any(i.user_name in line for i in plan_whitelist.values() for line in lines):
+    def should_process():
+        for info in plan_whitelist.values():
+            needle = info.user_name + " "
+            for line in lines:
+                if line.startswith(needle):
+                    return True
+        return False
+
+    if not should_process():
         return lines
 
     logger.debug(f"Processing lines: {'\n'.join(lines)}")
