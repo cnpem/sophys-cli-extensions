@@ -1,6 +1,7 @@
 import enum
 import functools
 import logging
+import typing
 
 import numpy as np
 
@@ -40,8 +41,12 @@ class LocalDataSource(DataSource):
         return self._file_contents.loc[self._file_contents.type == type]["name"].to_numpy()
 
 
-def add_detectors(line: str, source: DataSource):
+def add_detectors(line: str, source: DataSource, plan_information: typing.Optional[PlanInformation] = None):
     """Insert '-d ...' directive into 'line', with detectors taken from 'source'."""
+    if plan_information is not None:
+        if not plan_information.extra_props.get("has_detectors", True):
+            return line
+
     plan_name, _, args = line.partition(' ')
     detectors_str = " ".join(source.get(DataSource.DataType.DETECTORS))
     return f"{plan_name} -d {detectors_str} {args}"
@@ -75,20 +80,21 @@ def input_processor(lines: list[str], plan_whitelist: dict[str, PlanInformation]
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 
-    def should_process():
+    def test_should_process():
         for info in plan_whitelist.values():
             needle = info.user_name + " "
             for line in lines:
                 if line.startswith(needle):
-                    return True
-        return False
+                    return True, info
+        return False, None
 
-    if not should_process():
+    should_process, plan_information = test_should_process()
+    if not should_process:
         return lines
 
     logger.debug(f"Processing lines: {'\n'.join(lines)}")
     processors = [
-        functools.partial(add_detectors, source=data_source),
+        functools.partial(add_detectors, source=data_source, plan_information=plan_information),
         functools.partial(add_metadata, source=data_source),
     ]
 

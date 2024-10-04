@@ -11,7 +11,7 @@ from .input_processor import LocalDataSource, input_processor
 
 
 PLAN_WHITELIST = {
-    "mv": PlanInformation("mov", PlanMV),
+    "mv": PlanInformation("mov", PlanMV, has_detectors=False),
     "count": PlanInformation("count", PlanCount),
     "scan": PlanInformation("scan", PlanScan),
     "grid_scan": PlanInformation("grid_scan", PlanGridScan),

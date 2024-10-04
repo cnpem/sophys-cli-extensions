@@ -1,5 +1,6 @@
 import pytest
 
+from sophys.cli.extensions.plan_magics import PlanInformation
 from sophys.cli.extensions.ema import PLAN_WHITELIST
 from sophys.cli.extensions.ema.input_processor import LocalDataSource, add_detectors, add_metadata, input_processor
 
@@ -32,6 +33,19 @@ def test_add_detectors(sample_line, expected, local_data_source):
 
 
 @pytest.mark.parametrize(
+    "sample_line,plan_information,expected", [
+        ("scan -m -1 1 --num 10", PlanInformation("scan", None), "scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=False), "scan -m -1 1 --num 10"),
+        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None), "super_scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "super_scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=False), "super_scan -m -1 1 --num 10"),
+    ])
+def test_add_detectors_with_plan_information(sample_line, plan_information, expected, local_data_source):
+    assert (ret := add_detectors(sample_line, local_data_source, plan_information=plan_information)) == expected, ret
+
+
+@pytest.mark.parametrize(
     "sample_line,expected", [
         ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
         ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
@@ -46,6 +60,7 @@ def test_add_metadata(sample_line, expected, local_data_source):
         (["scan -m -1 1 --num 10"], ["scan -d abc1 abc2 abc3 -m -1 1 --num 10 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["scan -mvs1 -1 1 10 0.1"], ["scan -d abc1 abc2 abc3 -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
+        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"])
     ])
 def test_input_processor(sample_lines, expected, local_data_source):
     assert (ret := input_processor(sample_lines, PLAN_WHITELIST, local_data_source)) == expected, ret
