@@ -1,8 +1,8 @@
 import functools
 
-from .. import render_custom_magics, setup_remote_session_handler
+from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
 
-from ..plan_magics import get_plans, register_magic_for_plan, RealMagics, ModeOfOperation
+from ..plan_magics import get_plans, ModeOfOperation, PlanInformation
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
@@ -11,11 +11,11 @@ from .input_processor import LocalDataSource, input_processor
 
 
 PLAN_WHITELIST = {
-    "mv": ("mov", PlanMV),
-    "count": ("count", PlanCount),
-    "scan": ("scan", PlanScan),
-    "grid_scan": ("grid_scan", PlanGridScan),
-    "adaptive_scan": ("adaptive_scan", PlanAdaptiveScan),
+    "mv": PlanInformation("mov", PlanMV),
+    "count": PlanInformation("count", PlanCount),
+    "scan": PlanInformation("scan", PlanScan),
+    "grid_scan": PlanInformation("grid_scan", PlanGridScan),
+    "adaptive_scan": PlanInformation("adaptive_scan", PlanAdaptiveScan),
 }
 
 
@@ -35,10 +35,7 @@ def load_ipython_extension(ipython):
     local_mode = ipython.user_ns.get("LOCAL_MODE", False)
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
-    for plan_name, plan in get_plans("ema", PLAN_WHITELIST):
-        register_magic_for_plan(plan_name, plan, PLAN_WHITELIST, mode_of_op)
-    ipython.register_magics(RealMagics)
-
+    setup_plan_magics(ipython, "ema", PLAN_WHITELIST, mode_of_op)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
 

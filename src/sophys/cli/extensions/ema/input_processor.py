@@ -4,6 +4,8 @@ import logging
 
 import numpy as np
 
+from ..plan_magics import PlanInformation
+
 
 class DataSource:
     class DataType(enum.StrEnum):
@@ -69,11 +71,11 @@ def add_metadata(line: str, source: DataSource):
     return f"{line.strip()} --md {md.strip()}"
 
 
-def input_processor(lines, plan_whitelist: dict, data_source: DataSource):
+def input_processor(lines, plan_whitelist: dict[str, PlanInformation], data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 
-    if not any(i[0] in line for i in plan_whitelist.values() for line in lines):
+    if not any(i.user_name in line for i in plan_whitelist.values() for line in lines):
         return lines
 
     logger.debug(f"Processing lines: {'\n'.join(lines)}")
