@@ -2,7 +2,7 @@ import functools
 
 from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
 
-from ..plan_magics import get_plans, ModeOfOperation, PlanInformation
+from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
@@ -10,13 +10,13 @@ from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiv
 from .input_processor import LocalDataSource, input_processor
 
 
-PLAN_WHITELIST = {
-    "mv": PlanInformation("mov", PlanMV, has_detectors=False),
-    "count": PlanInformation("count", PlanCount),
-    "scan": PlanInformation("scan", PlanScan),
-    "grid_scan": PlanInformation("grid_scan", PlanGridScan),
-    "adaptive_scan": PlanInformation("adaptive_scan", PlanAdaptiveScan),
-}
+PLAN_WHITELIST = PlanWhitelist([
+    PlanInformation("mv", "mov", PlanMV, has_detectors=False),
+    PlanInformation("count", "count", PlanCount),
+    PlanInformation("scan", "scan", PlanScan),
+    PlanInformation("grid_scan", "grid_scan", PlanGridScan),
+    PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
+])
 
 
 def setup_input_transformer(ipython):
@@ -48,7 +48,7 @@ def load_ipython_extension(ipython):
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
-        ipython.push({"P": set(i[0] for i in get_plans("ema", PLAN_WHITELIST))})
+        ipython.push({"P": set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))})
 
     setup_input_transformer(ipython)
 

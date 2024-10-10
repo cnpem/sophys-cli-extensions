@@ -81,7 +81,7 @@ def input_processor(lines: list[str], plan_whitelist: dict[str, PlanInformation]
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 
     def test_should_process():
-        for info in plan_whitelist.values():
+        for info in plan_whitelist:
             needle = info.user_name + " "
             for line in lines:
                 if line.startswith(needle):

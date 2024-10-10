@@ -1,18 +1,18 @@
 from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
 
-from ..plan_magics import get_plans, ModeOfOperation, PlanInformation
+from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 
 
-PLAN_WHITELIST = {
-    "mv": PlanInformation("mov", PlanMV),
-    "count": PlanInformation("count", PlanCount),
-    "scan": PlanInformation("scan", PlanScan),
-    "grid_scan": PlanInformation("grid_scan", PlanGridScan),
-    "adaptive_scan": PlanInformation("adaptive_scan", PlanAdaptiveScan),
-}
+PLAN_WHITELIST = PlanWhitelist([
+    PlanInformation("mv", "mov", PlanMV),
+    PlanInformation("count", "count", PlanCount),
+    PlanInformation("scan", "scan", PlanScan),
+    PlanInformation("grid_scan", "grid_scan", PlanGridScan),
+    PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
+])
 
 
 def load_ipython_extension(ipython):
