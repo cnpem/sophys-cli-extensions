@@ -24,9 +24,9 @@ def test_local_data_source_get(local_data_source):
 
 @pytest.mark.parametrize(
     "sample_line,expected", [
-        ("scan -m -1 1 --num 10", "scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
-        ("scan -mvs1 -1 1 10 0.1", "scan -d abc1 abc2 abc3 -mvs1 -1 1 10 0.1"),
-        ("super_scan whatever whatever", "super_scan -d abc1 abc2 abc3 whatever whatever"),
+        ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
+        ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3"),
+        ("super_scan whatever whatever", "super_scan whatever whatever -d abc1 abc2 abc3"),
     ])
 def test_add_detectors(sample_line, expected, local_data_source):
     assert (ret := add_detectors(sample_line, local_data_source)) == expected, ret
@@ -34,11 +34,11 @@ def test_add_detectors(sample_line, expected, local_data_source):
 
 @pytest.mark.parametrize(
     "sample_line,plan_information,expected", [
-        ("scan -m -1 1 --num 10", PlanInformation("scan", None), "scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
-        ("scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("scan -m -1 1 --num 10", PlanInformation("scan", None), "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
+        ("scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=False), "scan -m -1 1 --num 10"),
-        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None), "super_scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
-        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "super_scan -d abc1 abc2 abc3 -m -1 1 --num 10"),
+        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None), "super_scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
+        ("super_scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=True), "super_scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("super_scan -m -1 1 --num 10", PlanInformation("scan", None, has_detectors=False), "super_scan -m -1 1 --num 10"),
     ])
 def test_add_detectors_with_plan_information(sample_line, plan_information, expected, local_data_source):
@@ -57,8 +57,8 @@ def test_add_metadata(sample_line, expected, local_data_source):
 
 @pytest.mark.parametrize(
     "sample_lines,expected", [
-        (["scan -m -1 1 --num 10"], ["scan -d abc1 abc2 abc3 -m -1 1 --num 10 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
-        (["scan -mvs1 -1 1 10 0.1"], ["scan -d abc1 abc2 abc3 -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["scan -m -1 1 --num 10"], ["scan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["scan -mvs1 -1 1 10 0.1"], ["scan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
         (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"])
     ])

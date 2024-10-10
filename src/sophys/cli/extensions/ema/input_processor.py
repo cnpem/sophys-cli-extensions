@@ -49,7 +49,7 @@ def add_detectors(line: str, source: DataSource, plan_information: typing.Option
 
     plan_name, _, args = line.partition(' ')
     detectors_str = " ".join(source.get(DataSource.DataType.DETECTORS))
-    return f"{plan_name} -d {detectors_str} {args}"
+    return f"{line.strip()} -d {detectors_str}"
 
 
 def add_metadata(line: str, source: DataSource):
