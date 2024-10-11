@@ -17,6 +17,12 @@ class DataSource:
     def get(self, type: DataType) -> np.array:
         raise NotImplementedError
 
+    def add(self, type: DataType, value: str):
+        raise NotImplementedError
+
+    def remove(self, type: DataType, value: str):
+        raise NotImplementedError
+
 
 class LocalDataSource(DataSource):
     """Data source backed by a local CSV file."""
@@ -69,3 +75,11 @@ class RedisDataSource(DataSource):
             return np.array([])
 
         return np.array(list(self._redis.smembers(redis_key)))
+
+    def add(self, type: DataSource.DataType, value: str):
+        redis_key = self._data_type_to_redis_key(type)
+        self._redis.sadd(redis_key, value)
+
+    def remove(self, type: DataSource.DataType, value: str):
+        redis_key = self._data_type_to_redis_key(type)
+        self._redis.srem(redis_key, value)
