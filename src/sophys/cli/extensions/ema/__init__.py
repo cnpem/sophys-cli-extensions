@@ -1,4 +1,7 @@
 import functools
+import logging
+
+from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
 from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
 
@@ -9,7 +12,25 @@ from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiv
 from ..plan_magics import PlanCLI, BPlan
 
 from .data_source import RedisDataSource
+from .device_selector import spawnDeviceSelector
 from .input_processor import input_processor
+
+
+@magics_class
+class DeviceSelectorMagics(Magics):
+    @line_magic
+    @needs_local_scope
+    def egg(self, line, local_ns):
+        if "__data_source" not in local_ns:
+            logging.error("Could not run device selector. No '__data_source' variable in the namespace.")
+
+        spawnDeviceSelector(local_ns["__data_source"])
+
+    @staticmethod
+    def description():
+        tools = []
+        tools.append(("egg", "Open the EMA Device Selector"))
+        return tools
 
 
 class Plan1DScan(PlanCLI):
@@ -62,8 +83,12 @@ PLAN_WHITELIST = PlanWhitelist([
 
 def setup_input_transformer(ipython):
     data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+    ipython.push({"__data_source": data_source})
+
     proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
     ipython.input_transformers_cleanup.append(proc)
+
+    ipython.register_magics(DeviceSelectorMagics)
 
 
 def load_ipython_extension(ipython):
