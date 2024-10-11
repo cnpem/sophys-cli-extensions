@@ -8,7 +8,7 @@ from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 from ..plan_magics import PlanCLI, BPlan
 
-from .input_processor import LocalDataSource, input_processor
+from .input_processor import RedisDataSource, input_processor
 
 
 class Plan1DScan(PlanCLI):
@@ -60,15 +60,9 @@ PLAN_WHITELIST = PlanWhitelist([
 
 
 def setup_input_transformer(ipython):
-    data_path = "ema_sophys_cli_config.csv"
-
-    try:
-        data_source = LocalDataSource(data_path)
-    except FileNotFoundError:
-        print(f"Failed to load file at '{data_path}'. No extra input processing will be done.")
-    else:
-        proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
-        ipython.input_transformers_cleanup.append(proc)
+    data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+    proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
+    ipython.input_transformers_cleanup.append(proc)
 
 
 def load_ipython_extension(ipython):
