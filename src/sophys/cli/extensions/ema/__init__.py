@@ -8,7 +8,8 @@ from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 from ..plan_magics import PlanCLI, BPlan
 
-from .input_processor import RedisDataSource, input_processor
+from .data_source import RedisDataSource
+from .input_processor import input_processor
 
 
 class Plan1DScan(PlanCLI):
