@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
@@ -44,6 +45,8 @@ class Plan1DScan(PlanCLI):
         _a.add_argument("stop", type=float)
         _a.add_argument("num", type=int)
         _a.add_argument("exposure_time", type=float, nargs='?', default=None)
+        _a.add_argument("hdf_file_name", type=str, default=None)
+        _a.add_argument("hdf_file_path", type=str, default=None)
 
         return _a
 
@@ -56,10 +59,18 @@ class Plan1DScan(PlanCLI):
         exp_time = parsed_namespace.exposure_time
         md = self.parse_md(parsed_namespace)
 
+        hdf_file_name = parsed_namespace.hdf_file_name
+        if hdf_file_name is None:
+            hdf_file_name = "scan1d_%H%M%S"
+
+        hdf_file_path = parsed_namespace.hdf_file_path
+        if hdf_file_path is None:
+            hdf_file_path = os.getcwd()
+
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, motor, start, stop, num, exp_time, md=md, absolute=self.absolute)
+            return functools.partial(self._plan, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, motor, start, stop, num, exp_time, md=md, absolute=self.absolute)
+            return BPlan(self._plan_name, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
 
 
 class PlanAbs1DScan(Plan1DScan):
