@@ -45,8 +45,8 @@ class Plan1DScan(PlanCLI):
         _a.add_argument("stop", type=float)
         _a.add_argument("num", type=int)
         _a.add_argument("exposure_time", type=float, nargs='?', default=None)
-        _a.add_argument("hdf_file_name", type=str, default=None)
-        _a.add_argument("hdf_file_path", type=str, default=None)
+        _a.add_argument("hdf_file_name", type=str, nargs='?', default=None)
+        _a.add_argument("hdf_file_path", type=str, nargs='?', default=None)
 
         return _a
 
