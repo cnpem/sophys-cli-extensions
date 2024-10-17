@@ -61,7 +61,8 @@ class Plan1DScan(PlanCLI):
 
         hdf_file_name = parsed_namespace.hdf_file_name
         if hdf_file_name is None:
-            hdf_file_name = "scan1d_%H%M%S"
+            from datetime import datetime
+            hdf_file_name = datetime.now().strftime("scan1d_%H_%M_%S")
 
         hdf_file_path = parsed_namespace.hdf_file_path
         if hdf_file_path is None:
