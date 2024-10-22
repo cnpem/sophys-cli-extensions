@@ -135,14 +135,14 @@ def load_ipython_extension(ipython):
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = PLAN_WHITELIST
 
+    setup_input_transformer(ipython)
+
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
         ipython.push({"P": set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))})
-
-    setup_input_transformer(ipython)
 
 
 def unload_ipython_extension(ipython):
