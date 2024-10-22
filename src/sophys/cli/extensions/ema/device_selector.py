@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import IntFlag
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QHBoxLayout, QCheckBox
+from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QHBoxLayout, QCheckBox, QSpacerItem
 
 from .data_source import DataSource
 
@@ -98,10 +98,10 @@ class DeviceSelectorMainWindow(QMainWindow):
 
         readable_form.addWidget(label("Device name"), 0, 0, 1, 1)
         readable_form.addWidget(label("Mnemonic"), 0, 1, 1, 1)
-        readable_form.addWidget(label("Read configuration"), 0, 2, 1, 3)
-        readable_form.addWidget(label("Before the scan"), 1, 2, 1, 1)
-        readable_form.addWidget(label("During the scan"), 1, 3, 1, 1)
-        readable_form.addWidget(label("After the scan"), 1, 4, 1, 1)
+        readable_form.addWidget(label("Read configuration"), 0, 2, 1, 9)
+        readable_form.addWidget(label("Before the scan"), 1, 2, 1, 3)
+        readable_form.addWidget(label("During the scan"), 1, 5, 1, 3)
+        readable_form.addWidget(label("After the scan"), 1, 8, 1, 3)
 
         def add_to_layout(item, layout):
             row = layout.rowCount()
@@ -109,12 +109,20 @@ class DeviceSelectorMainWindow(QMainWindow):
             layout.addWidget(label(item.user_name), row, 0, 1, 1)
             layout.addWidget(label(item.mnemonic), row, 1, 1, 1)
 
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 2, 1, 1)
             before_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.BEFORE, item.mnemonic)
-            layout.addWidget(before_checkbox, row, 2, 1, 1)
+            layout.addWidget(before_checkbox, row, 3, 1, 1)
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 4, 1, 1)
+
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 5, 1, 1)
             during_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.DETECTORS, item.mnemonic)
-            layout.addWidget(during_checkbox, row, 3, 1, 1)
+            layout.addWidget(during_checkbox, row, 6, 1, 1)
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 7, 1, 1)
+
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 8, 1, 1)
             after_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.AFTER, item.mnemonic)
-            layout.addWidget(after_checkbox, row, 4, 1, 1)
+            layout.addWidget(after_checkbox, row, 9, 1, 1)
+            layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), 10, 1, 1)
 
         for item in EMA_DEVICES:
             if item.type & DeviceType.READABLE:
