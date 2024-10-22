@@ -21,7 +21,7 @@ from .input_processor import input_processor
 class DeviceSelectorMagics(Magics):
     @line_magic
     @needs_local_scope
-    def egg(self, line, local_ns):
+    def eds(self, line, local_ns):
         if "__data_source" not in local_ns:
             logging.error("Could not run device selector. No '__data_source' variable in the namespace.")
 
@@ -30,7 +30,8 @@ class DeviceSelectorMagics(Magics):
     @staticmethod
     def description():
         tools = []
-        tools.append(("egg", "Open the EMA Device Selector"))
+        tools.append(("", ""))
+        tools.append(("eds", "Open the EMA Device Selector"))
         return tools
 
 

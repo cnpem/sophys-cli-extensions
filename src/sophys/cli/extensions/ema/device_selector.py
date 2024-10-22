@@ -62,7 +62,7 @@ class DeviceSelectorMainWindow(QMainWindow):
         self._data_source = data_source
 
         self.main_layout = QVBoxLayout()
-        main_title = QLabel("<h1>EMA Metadata Manager</h1>")
+        main_title = QLabel("<h1>EMA Device Selector</h1>")
         main_title.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(main_title)
 
@@ -133,7 +133,7 @@ class DeviceSelectorMainWindow(QMainWindow):
 
 def spawnDeviceSelector(data_source: DataSource):
     def __main(data_source: DataSource):
-        app = QApplication(["EMA Metadata Manager"])
+        app = QApplication(["EMA Device Selector"])
 
         main_window = DeviceSelectorMainWindow(data_source)
         main_window.show()
