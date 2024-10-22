@@ -84,6 +84,9 @@ class Plan1DScan(PlanCLI):
         if hdf_file_path is None:
             hdf_file_path = os.getcwd()
 
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = hdf_file_path
+
         if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(self._plan, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
         if self._mode_of_operation == ModeOfOperation.Remote:
