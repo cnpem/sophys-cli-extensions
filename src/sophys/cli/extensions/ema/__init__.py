@@ -76,10 +76,9 @@ class Plan1DScan(PlanCLI):
 
         md["MNEMONICS"] = self.get_mnemonics(parsed_namespace.detectors, parsed_namespace.motor[0], md)
 
-        hdf_file_name = parsed_namespace.hdf_file_name
-        if hdf_file_name is None:
-            from datetime import datetime
-            hdf_file_name = datetime.now().strftime("scan1d_%H_%M_%S")
+        template = parsed_namespace.hdf_file_name or "ascan_%H_%M_%S"
+        from datetime import datetime
+        hdf_file_name = datetime.now().strftime(template)
 
         hdf_file_path = parsed_namespace.hdf_file_path
         if hdf_file_path is None:
