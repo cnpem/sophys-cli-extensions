@@ -56,13 +56,13 @@ class Plan1DScan(PlanCLI):
     def create_parser(self):
         _a = super().create_parser()
 
-        _a.add_argument("motor", nargs=1, type=str)
-        _a.add_argument("start", type=float)
-        _a.add_argument("stop", type=float)
-        _a.add_argument("num", type=int)
-        _a.add_argument("exposure_time", type=float, nargs='?', default=None)
-        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None)
-        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None)
+        _a.add_argument("motor", nargs=1, type=str, help="Mnemonic of a motor to move.")
+        _a.add_argument("start", type=float, help="Start position, in the motor's EGU.")
+        _a.add_argument("stop", type=float, help="End position, in the motor's EGU.")
+        _a.add_argument("num", type=int, help="Number of points between the start and end positions.")
+        _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
+        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
+        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
         return _a
 
