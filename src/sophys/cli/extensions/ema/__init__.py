@@ -43,7 +43,11 @@ class Plan1DScan(PlanCLI):
 
         res = dict()
         for detector_mnemonic in detectors:
-            res[detector_mnemonic] = mnemonic_to_pv_name(detector_mnemonic)
+            pv_name = mnemonic_to_pv_name(detector_mnemonic)
+            if pv_name is None:
+                logging.warning("No PV name found for mnemonic '%s'.", detector_mnemonic)
+            else:
+                res[detector_mnemonic] = pv_name
         res[motor] = mnemonic_to_pv_name(motor)
 
         for d in md.get("READ_BEFORE", "").split(','):
