@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import IntFlag
 
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QHBoxLayout, QCheckBox, QSpacerItem
+from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QHBoxLayout, QCheckBox, QSpacerItem, QWidget
 
 from .data_source import DataSource
 
@@ -66,8 +66,8 @@ class DeviceSelectorMainWindow(QMainWindow):
         main_title.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(main_title)
 
-        readable_page = QFrame()
-        settable_page = QFrame()
+        readable_page = QWidget()
+        settable_page = QWidget()
 
         readable_form = QGridLayout()
         settable_form = QGridLayout()
@@ -83,8 +83,7 @@ class DeviceSelectorMainWindow(QMainWindow):
         self.main_layout.addWidget(device_type_tab_widget)
 
         main_frame = QFrame()
-        main_frame.setStyleSheet("margin: 2px")
-        main_frame.setMidLineWidth(2)
+        main_frame.setStyleSheet(".QFrame { margin: 2px; border: 2px solid #000000; border-radius: 4px; }")
         main_frame.setFrameShape(QFrame.Shape.Box)
         main_frame.setLayout(self.main_layout)
 
@@ -136,6 +135,8 @@ def spawnDeviceSelector(data_source: DataSource):
         app = QApplication(["EMA Device Selector"])
 
         main_window = DeviceSelectorMainWindow(data_source)
+        with open('DeviceSelector.qss', 'r') as _ss:
+            main_window.setStyleSheet(_ss.read())
         main_window.show()
 
         sys.exit(app.exec())
