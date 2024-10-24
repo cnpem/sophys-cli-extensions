@@ -132,11 +132,19 @@ def setup_input_transformer(ipython):
     ipython.register_magics(DeviceSelectorMagics)
 
 
+def after_plan_submission_callback(ipython):
+    ipython.run_line_magic("wait_for_idle", "")
+
+
 def load_ipython_extension(ipython):
     local_mode = ipython.user_ns.get("LOCAL_MODE", False)
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
-    setup_plan_magics(ipython, "ema", PLAN_WHITELIST, mode_of_op)
+    post_submission_callbacks = []
+    if mode_of_op == ModeOfOperation.Remote:
+        post_submission_callbacks.append(functools.partial(after_plan_submission_callback, ipython))
+
+    setup_plan_magics(ipython, "ema", PLAN_WHITELIST, mode_of_op, post_submission_callbacks)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
 
