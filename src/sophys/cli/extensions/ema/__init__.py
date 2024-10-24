@@ -32,7 +32,7 @@ class DeviceSelectorMagics(Magics):
     def description():
         tools = []
         tools.append(("", ""))
-        tools.append(("eds", "Open the EMA Device Selector"))
+        tools.append(("eds", "Open the EMA Device Selector", "\x1b[38;5;82m"))
         return tools
 
 
