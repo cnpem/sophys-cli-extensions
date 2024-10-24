@@ -15,6 +15,7 @@ from ..plan_magics import PlanCLI, BPlan
 from .data_source import RedisDataSource
 from .device_selector import spawnDeviceSelector
 from .input_processor import input_processor
+from .ipython_config import setup_prompt
 
 
 @magics_class
@@ -151,6 +152,8 @@ def load_ipython_extension(ipython):
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
         ipython.push({"P": set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))})
+
+    setup_prompt(ipython)
 
 
 def unload_ipython_extension(ipython):
