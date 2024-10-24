@@ -9,7 +9,7 @@ from .. import render_custom_magics, setup_remote_session_handler, setup_plan_ma
 from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
-from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from ..plan_magics import PlanMV, PlanReadMany, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 from ..plan_magics import PlanCLI, BPlan
 
 from .data_source import RedisDataSource
@@ -108,6 +108,7 @@ class PlanRel1DScan(Plan1DScan):
 
 PLAN_WHITELIST = PlanWhitelist([
     PlanInformation("mv", "mov", PlanMV, has_detectors=False),
+    PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
     PlanInformation("count", "count", PlanCount),
     PlanInformation("scan", "scan", PlanScan),
     PlanInformation("grid_scan", "grid_scan", PlanGridScan),
