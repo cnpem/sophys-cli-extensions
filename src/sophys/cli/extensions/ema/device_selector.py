@@ -32,6 +32,11 @@ EMA_DEVICES = [
     DeviceItem("I6", "i6c", DeviceType.READABLE),
     DeviceItem("I7", "i7c", DeviceType.READABLE),
     DeviceItem("I8", "i8c", DeviceType.READABLE),
+
+    DeviceItem("Vortex"           , "xrf", DeviceType.READABLE),  # noqa: E203
+    DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE),  # noqa: E203
+    DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE),  # noqa: E203
+    DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE),  # noqa: E203
 ]
 
 
