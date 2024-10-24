@@ -35,27 +35,31 @@ class DeviceSelectorMagics(Magics):
         return tools
 
 
+def populate_mnemonics(*devices, md):
+    from sophys.ema.utils import mnemonic_to_pv_name
+
+    res = dict()
+
+    def inner(mnemonic, pv_name):
+        if pv_name is None:
+            logging.warning("No PV name found for mnemonic '%s'.", mnemonic)
+        else:
+            res[mnemonic] = pv_name
+
+    for d in devices:
+        inner(d, mnemonic_to_pv_name(d))
+
+    for d in md.get("READ_BEFORE", "").split(','):
+        inner(d, mnemonic_to_pv_name(d))
+    for d in md.get("READ_AFTER", "").split(','):
+        inner(d, mnemonic_to_pv_name(d))
+
+    md["MNEMONICS"] = ",".join(f"{mnemonic}={pv_name}" for mnemonic, pv_name in res.items())
+    return md
+
+
 class Plan1DScan(PlanCLI):
     absolute: bool
-
-    def get_mnemonics(self, detectors, motor, md):
-        from sophys.ema.utils import mnemonic_to_pv_name
-
-        res = dict()
-        for detector_mnemonic in detectors:
-            pv_name = mnemonic_to_pv_name(detector_mnemonic)
-            if pv_name is None:
-                logging.warning("No PV name found for mnemonic '%s'.", detector_mnemonic)
-            else:
-                res[detector_mnemonic] = pv_name
-        res[motor] = mnemonic_to_pv_name(motor)
-
-        for d in md.get("READ_BEFORE", "").split(','):
-            res[d] = mnemonic_to_pv_name(d)
-        for d in md.get("READ_AFTER", "").split(','):
-            res[d] = mnemonic_to_pv_name(d)
-
-        return ",".join(f"{mnemonic}={pv_name}" for mnemonic, pv_name in res.items())
 
     def create_parser(self):
         _a = super().create_parser()
@@ -77,9 +81,8 @@ class Plan1DScan(PlanCLI):
         stop = parsed_namespace.stop
         num = parsed_namespace.num
         exp_time = parsed_namespace.exposure_time
-        md = self.parse_md(parsed_namespace)
 
-        md["MNEMONICS"] = self.get_mnemonics(parsed_namespace.detectors, parsed_namespace.motor[0], md)
+        md = self.parse_md(*parsed_namespace.detectors, parsed_namespace.motor[0], ns=parsed_namespace)
 
         template = parsed_namespace.hdf_file_name or "ascan_%H_%M_%S"
         from datetime import datetime
@@ -106,7 +109,7 @@ class PlanRel1DScan(Plan1DScan):
     absolute = False
 
 
-PLAN_WHITELIST = PlanWhitelist([
+PLAN_WHITELIST = PlanWhitelist(
     PlanInformation("mv", "mov", PlanMV, has_detectors=False),
     PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
     PlanInformation("count", "count", PlanCount),
@@ -115,7 +118,7 @@ PLAN_WHITELIST = PlanWhitelist([
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
     PlanInformation("scan1d", "ascan", PlanAbs1DScan),
     PlanInformation("scan1d", "rscan", PlanRel1DScan),
-])
+    pre_processing_md=[populate_mnemonics])
 
 
 def setup_input_transformer(ipython):
