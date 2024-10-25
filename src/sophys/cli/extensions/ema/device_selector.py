@@ -157,13 +157,15 @@ QTabBar::tab:selected {
 
 def spawnDeviceSelector(data_source: DataSource):
     def __main(data_source: DataSource):
-        app = QApplication(["EMA Device Selector"])
+        if QApplication.instance():
+            app = QApplication.instance()
+        else:
+            app = QApplication(["EMA Device Selector"])
 
         main_window = DeviceSelectorMainWindow(data_source)
         main_window.setStyleSheet(WINDOW_STYLESHEET)
         main_window.show()
 
-        sys.exit(app.exec())
+        app.exec()
 
-    p = multiprocessing.Process(target=__main, args=(data_source,))
-    p.start()
+    __main(data_source)
