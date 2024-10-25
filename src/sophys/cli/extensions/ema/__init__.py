@@ -31,7 +31,6 @@ class DeviceSelectorMagics(Magics):
     @staticmethod
     def description():
         tools = []
-        tools.append(("", ""))
         tools.append(("eds", "Open the EMA Device Selector", "\x1b[38;5;82m"))
         return tools
 
@@ -147,12 +146,11 @@ def load_ipython_extension(ipython):
     setup_plan_magics(ipython, "ema", PLAN_WHITELIST, mode_of_op, post_submission_callbacks)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
+    setup_input_transformer(ipython)
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = PLAN_WHITELIST
-
-    setup_input_transformer(ipython)
 
     print("\n".join(render_custom_magics(ipython)))
 
