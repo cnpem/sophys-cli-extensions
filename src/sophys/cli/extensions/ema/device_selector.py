@@ -135,13 +135,32 @@ class DeviceSelectorMainWindow(QMainWindow):
                 add_to_layout(item, settable_form)
 
 
+WINDOW_STYLESHEET = """
+QTabWidget {
+    background-color: #e0e0e6;
+}
+QTabBar::tab {
+    border: 1px solid #a0a0b0;
+    border-bottom: 0px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    padding: 4px 12px 4px 12px;
+    margin-bottom: 1px;
+}
+QTabBar::tab:selected {
+    background-color: #ededf0;
+    border-color: #9B9B9B;
+    border-bottom-color: #ededf0; /* same as pane color */
+}
+"""
+
+
 def spawnDeviceSelector(data_source: DataSource):
     def __main(data_source: DataSource):
         app = QApplication(["EMA Device Selector"])
 
         main_window = DeviceSelectorMainWindow(data_source)
-        with open('DeviceSelector.qss', 'r') as _ss:
-            main_window.setStyleSheet(_ss.read())
+        main_window.setStyleSheet(WINDOW_STYLESHEET)
         main_window.show()
 
         sys.exit(app.exec())
