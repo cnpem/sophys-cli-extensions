@@ -110,7 +110,7 @@ class PlanRel1DScan(Plan1DScan):
 
 
 PLAN_WHITELIST = PlanWhitelist(
-    PlanInformation("mv", "mov", PlanMV, has_detectors=False),
+    PlanInformation("mov", "mov", PlanMV, has_detectors=False),
     PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
     PlanInformation("count", "count", PlanCount),
     PlanInformation("scan", "scan", PlanScan),
