@@ -58,6 +58,11 @@ def populate_mnemonics(*devices, md):
     return md
 
 
+def do_spec_files(*devices, md):
+    md["metadata_save_file_format"] = "SPEC"
+    return md
+
+
 class Plan1DScan(PlanCLI):
     absolute: bool
 
@@ -118,7 +123,7 @@ PLAN_WHITELIST = PlanWhitelist(
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
     PlanInformation("scan1d", "ascan", PlanAbs1DScan),
     PlanInformation("scan1d", "rscan", PlanRel1DScan),
-    pre_processing_md=[populate_mnemonics])
+    pre_processing_md=[populate_mnemonics, do_spec_files])
 
 
 def setup_input_transformer(ipython):
