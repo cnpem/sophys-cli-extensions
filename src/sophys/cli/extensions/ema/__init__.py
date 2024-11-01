@@ -50,9 +50,11 @@ def populate_mnemonics(*devices, md):
         inner(d, mnemonic_to_pv_name(d))
 
     for d in md.get("READ_BEFORE", "").split(','):
-        inner(d, mnemonic_to_pv_name(d))
+        if len(d) > 0:
+            inner(d, mnemonic_to_pv_name(d))
     for d in md.get("READ_AFTER", "").split(','):
-        inner(d, mnemonic_to_pv_name(d))
+        if len(d) > 0:
+            inner(d, mnemonic_to_pv_name(d))
 
     md["MNEMONICS"] = ",".join(f"{mnemonic}={pv_name}" for mnemonic, pv_name in res.items())
     return md
