@@ -68,6 +68,34 @@ def do_spec_files(*devices, md):
 class Plan1DScan(PlanCLI):
     absolute: bool
 
+    def _description(self):
+        return super()._description() + """
+
+Example usages:
+
+ascan ms2r 0.488 0.49 6
+    Make a 1D scan over 6 points on the 'ms2r' motor, from point 0.488 to point 0.49:
+
+    | scan point | scan point | scan point | scan point | scan point | scan point |
+    |-----x------------x------------x------------x------------x------------x------|
+       0.4880       0.4882       0.4884       0.4886       0.4888       0.4900
+                                    ms2r position
+
+    The exposure time used is the one set before the scan on the IOC.
+
+ascan wst 0.0 0.4 5 0.1
+    Make a 1D scan over 5 points on the 'wst' motor, from point 0.0 to point 0.4,
+    with exposure time per-point equal to 0.1 seconds:
+
+    | scan point | scan point | scan point | scan point | scan point |
+    |-----x------------x------------x------------x------------x------|
+         0.0          0.1          0.2          0.3          0.4
+                          wst position
+"""
+
+    def _usage(self):
+        return "%(prog)s motor start stop num [exposure_time] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+
     def create_parser(self):
         _a = super().create_parser()
 
