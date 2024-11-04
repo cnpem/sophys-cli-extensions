@@ -136,6 +136,27 @@ ascan wst 0.0 0.4 5 0.1
             return BPlan(self._plan_name, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
 
 
+class PlanMotorOrigin(PlanCLI):
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("motor", nargs=1, type=str, help="Mnemonic of a motor to set the origin of.")
+        _a.add_argument("position", type=float, help="Position of the motor to set as origin. Default: current position.", default=None)
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        motor = self.get_real_devices_if_needed(parsed_namespace.motor, local_ns)[0]
+        position = parsed_namespace.position
+
+        md = self.parse_md(parsed_namespace.motor[0], ns=parsed_namespace)
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, motor, position, md=md)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, motor, position, md=md)
+
+
 class PlanAbs1DScan(Plan1DScan):
     absolute = True
 
@@ -153,6 +174,7 @@ PLAN_WHITELIST = PlanWhitelist(
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
     PlanInformation("scan1d", "ascan", PlanAbs1DScan),
     PlanInformation("scan1d", "rscan", PlanRel1DScan),
+    PlanInformation("set_motor_origin", "mset", PlanMotorOrigin),
     pre_processing_md=[populate_mnemonics, do_spec_files])
 
 
