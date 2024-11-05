@@ -4,9 +4,9 @@ import os
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
-from ...data_source import RedisDataSource
+from ...data_source import LocalInMemoryDataSource, RedisDataSource
 
-from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
+from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace
 
 from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
@@ -24,10 +24,11 @@ class DeviceSelectorMagics(Magics):
     @line_magic
     @needs_local_scope
     def eds(self, line, local_ns):
-        if "__data_source" not in local_ns:
-            logging.error("Could not run device selector. No '__data_source' variable in the namespace.")
+        data_source = get_from_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, ns=local_ns)
+        if data_source is None:
+            logging.error("Could not run device selector. No data source variable in the namespace.")
 
-        spawnDeviceSelector(local_ns["__data_source"])
+        spawnDeviceSelector(data_source)
 
     @staticmethod
     def description():
@@ -180,10 +181,13 @@ PLAN_WHITELIST = PlanWhitelist(
 
 
 def setup_input_transformer(ipython):
-    data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
-    ipython.push({"__data_source": data_source})
+    remote_data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+    add_to_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, remote_data_source, ipython=ipython)
 
-    proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=data_source)
+    local_data_source = LocalInMemoryDataSource()
+    add_to_namespace(NamespaceKeys.LOCAL_DATA_SOURCE, local_data_source, ipython=ipython)
+
+    proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=remote_data_source)
     ipython.input_transformers_cleanup.append(proc)
 
     ipython.register_magics(DeviceSelectorMagics)
@@ -201,21 +205,24 @@ def load_ipython_extension(ipython):
     if mode_of_op == ModeOfOperation.Remote:
         post_submission_callbacks.append(functools.partial(after_plan_submission_callback, ipython))
 
-    setup_plan_magics(ipython, "ema", PLAN_WHITELIST, mode_of_op, post_submission_callbacks)
+    plan_whitelist = PlanWhitelist(*whitelisted_plan_list, whitelisted_plan_md_preprocessors)
+
+    setup_plan_magics(ipython, "ema", plan_whitelist, mode_of_op, post_submission_callbacks)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
     setup_input_transformer(ipython)
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
-        ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = PLAN_WHITELIST
+        ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
 
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
-        ipython.push({"P": set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))})
+        plans = set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))
+        add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
 
     setup_prompt(ipython)
 

@@ -1,4 +1,4 @@
-from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
+from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace
 
 from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
@@ -32,7 +32,8 @@ def load_ipython_extension(ipython):
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
-        ipython.push({"P": set(i[0] for i in get_plans("common", PLAN_WHITELIST))})
+        plans = set(i[0].user_name for i in get_plans("common", PLAN_WHITELIST))
+        add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
 
 
 def unload_ipython_extension(ipython):
