@@ -1,6 +1,6 @@
 import pytest
 
-from sophys.cli.data_source import LocalDataSource
+from sophys.cli.data_source import LocalFileDataSource
 from sophys.cli.extensions.plan_magics import PlanInformation
 from sophys.cli.extensions.ema import PLAN_WHITELIST
 from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadata, input_processor
@@ -8,7 +8,7 @@ from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadat
 
 @pytest.fixture
 def local_data_source(test_data_location):
-    return LocalDataSource(test_data_location + "ema_input_processor_data_source.csv")
+    return LocalFileDataSource(test_data_location + "ema_input_processor_data_source.csv")
 
 
 def test_local_data_source_creation(local_data_source):
@@ -17,10 +17,10 @@ def test_local_data_source_creation(local_data_source):
 
 
 def test_local_data_source_get(local_data_source):
-    assert len(dets := local_data_source.get(LocalDataSource.DataType.DETECTORS)) == 3, dets
-    assert len(before := local_data_source.get(LocalDataSource.DataType.BEFORE)) == 1, before
-    assert len(during := local_data_source.get(LocalDataSource.DataType.DURING)) == 2, during
-    assert len(after := local_data_source.get(LocalDataSource.DataType.AFTER)) == 2, after
+    assert len(dets := local_data_source.get(LocalFileDataSource.DataType.DETECTORS)) == 3, dets
+    assert len(before := local_data_source.get(LocalFileDataSource.DataType.BEFORE)) == 1, before
+    assert len(during := local_data_source.get(LocalFileDataSource.DataType.DURING)) == 2, during
+    assert len(after := local_data_source.get(LocalFileDataSource.DataType.AFTER)) == 2, after
 
 
 @pytest.mark.parametrize(

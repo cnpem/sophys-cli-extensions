@@ -2,7 +2,7 @@
 
 ### Assumptions
 
-##### If using **LocalDataSource**:
+##### If using **LocalFileDataSource**:
 
 We assume that there's a `ema_sophys_cli_config.csv` file in the user's working directory, configured with detectors to use, and metadata to acquire.
 
