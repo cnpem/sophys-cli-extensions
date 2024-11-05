@@ -2,8 +2,8 @@ import functools
 import logging
 import typing
 
+from ...data_source import DataSource
 from ..plan_magics import PlanInformation
-from .data_source import DataSource
 
 
 def add_detectors(line: str, source: DataSource, plan_information: typing.Optional[PlanInformation] = None):

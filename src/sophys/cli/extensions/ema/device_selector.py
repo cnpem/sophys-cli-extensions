@@ -8,7 +8,7 @@ from enum import IntFlag
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QCheckBox, QSpacerItem, QWidget, QPushButton
 
-from .data_source import DataSource
+from ...data_source import DataSource
 
 
 class DeviceType(IntFlag):

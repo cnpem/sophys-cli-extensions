@@ -4,6 +4,8 @@ import os
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
+from ...data_source import RedisDataSource
+
 from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics
 
 from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
@@ -12,7 +14,6 @@ from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 from ..plan_magics import PlanMV, PlanReadMany, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 from ..plan_magics import PlanCLI, BPlan
 
-from .data_source import RedisDataSource
 from .device_selector import spawnDeviceSelector
 from .input_processor import input_processor
 from .ipython_config import setup_prompt
