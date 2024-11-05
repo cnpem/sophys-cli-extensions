@@ -38,6 +38,36 @@ class DeviceSelectorMagics(Magics):
         return tools
 
 
+@magics_class
+class UtilityMagics(Magics):
+    @line_magic
+    @needs_local_scope
+    def newfile(self, line, local_ns):
+        persistent_metadata = get_from_namespace(NamespaceKeys.PERSISTENT_METADATA, ns=local_ns)
+        persistent_metadata.add_entry("metadata_save_file_identifier", line)
+        print(f"Metadata file configured to '{line}'.")
+
+    @line_magic
+    @needs_local_scope
+    def disable_auto_increment(self, line, local_ns):
+        persistent_metadata = get_from_namespace(NamespaceKeys.PERSISTENT_METADATA, ns=local_ns)
+
+        key = "metadata_save_disable_auto_increment"
+        if persistent_metadata.get_entry(key) is None:
+            persistent_metadata.add_entry(key, "Disabled")
+            print("Disabled auto-increment of metadata file name.")
+        else:
+            persistent_metadata.remove_entry(key)
+            print("Enabled auto-increment of metadata file name.")
+
+    @staticmethod
+    def description():
+        tools = []
+        tools.append(("newfile", "Configure the local metadata so metadata files are created with the specified name.", "\x1b[38;5;218m"))
+        tools.append(("disable_auto_increment", "Toggle usage of auto-increment in the metadata file name.", "\x1b[38;5;218m"))
+        return tools
+
+
 def populate_mnemonics(*devices, md):
     from sophys.ema.utils import mnemonic_to_pv_name
 
@@ -225,6 +255,7 @@ def load_ipython_extension(ipython):
 
     setup_plan_magics(ipython, "ema", plan_whitelist, mode_of_op, post_submission_callbacks)
     ipython.register_magics(MiscMagics)
+    ipython.register_magics(UtilityMagics)
     ipython.register_magics(KBLMagics)
     setup_input_transformer(ipython, plan_whitelist)
 
@@ -232,7 +263,7 @@ def load_ipython_extension(ipython):
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
 
-    add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md"})
+    add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md", "disable_auto_increment"})
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
