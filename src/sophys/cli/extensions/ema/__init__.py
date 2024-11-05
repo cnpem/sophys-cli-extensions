@@ -5,6 +5,7 @@ import os
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
 from ...data_source import LocalInMemoryDataSource, RedisDataSource
+from ...persistent_metadata import PersistentMetadata
 
 from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace
 
@@ -167,7 +168,7 @@ class PlanRel1DScan(Plan1DScan):
     absolute = False
 
 
-PLAN_WHITELIST = PlanWhitelist(
+whitelisted_plan_list = [
     PlanInformation("mov", "mov", PlanMV, has_detectors=False),
     PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
     PlanInformation("count", "count", PlanCount),
@@ -177,20 +178,32 @@ PLAN_WHITELIST = PlanWhitelist(
     PlanInformation("scan1d", "ascan", PlanAbs1DScan),
     PlanInformation("scan1d", "rscan", PlanRel1DScan),
     PlanInformation("set_motor_origin", "mset", PlanMotorOrigin),
-    pre_processing_md=[populate_mnemonics, do_spec_files])
+]
+
+whitelisted_plan_md_preprocessors = [
+    populate_mnemonics,
+    do_spec_files,
+]
 
 
-def setup_input_transformer(ipython):
+def setup_input_transformer(ipython, plan_whitelist):
     remote_data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
     add_to_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, remote_data_source, ipython=ipython)
 
-    local_data_source = LocalInMemoryDataSource()
-    add_to_namespace(NamespaceKeys.LOCAL_DATA_SOURCE, local_data_source, ipython=ipython)
-
-    proc = functools.partial(input_processor, plan_whitelist=PLAN_WHITELIST, data_source=remote_data_source)
+    proc = functools.partial(input_processor, plan_whitelist=plan_whitelist, data_source=remote_data_source)
     ipython.input_transformers_cleanup.append(proc)
 
     ipython.register_magics(DeviceSelectorMagics)
+
+
+def setup_persistent_metadata(ipython):
+    local_data_source = LocalInMemoryDataSource()
+    add_to_namespace(NamespaceKeys.LOCAL_DATA_SOURCE, local_data_source, ipython=ipython)
+
+    persistent_metadata = PersistentMetadata(local_data_source)
+    add_to_namespace(NamespaceKeys.PERSISTENT_METADATA, persistent_metadata, ipython=ipython)
+
+    return persistent_metadata.populate_permanent_md
 
 
 def after_plan_submission_callback(ipython):
@@ -205,23 +218,27 @@ def load_ipython_extension(ipython):
     if mode_of_op == ModeOfOperation.Remote:
         post_submission_callbacks.append(functools.partial(after_plan_submission_callback, ipython))
 
-    plan_whitelist = PlanWhitelist(*whitelisted_plan_list, whitelisted_plan_md_preprocessors)
+    permanent_md_preprocessor = setup_persistent_metadata(ipython)
+    whitelisted_plan_md_preprocessors.append(permanent_md_preprocessor)
+
+    plan_whitelist = PlanWhitelist(*whitelisted_plan_list, pre_processing_md=whitelisted_plan_md_preprocessors)
 
     setup_plan_magics(ipython, "ema", plan_whitelist, mode_of_op, post_submission_callbacks)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
-    setup_input_transformer(ipython)
+    setup_input_transformer(ipython, plan_whitelist)
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
 
+    add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md"})
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
-        plans = set(i[0].user_name for i in get_plans("ema", PLAN_WHITELIST))
+        plans = set(i[0].user_name for i in get_plans("ema", plan_whitelist))
         add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
 
     setup_prompt(ipython)
