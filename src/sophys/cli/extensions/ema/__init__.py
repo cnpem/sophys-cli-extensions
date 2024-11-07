@@ -152,7 +152,7 @@ class PlanMotorOrigin(PlanCLI):
         _a = super().create_parser()
 
         _a.add_argument("motor", nargs=1, type=str, help="Mnemonic of a motor to set the origin of.")
-        _a.add_argument("position", type=float, help="Position of the motor to set as origin. Default: current position.", default=None)
+        _a.add_argument("position", type=float, help="Position of the motor to set as origin. Default: current position.", default=None, nargs='?')
 
         return _a
 
