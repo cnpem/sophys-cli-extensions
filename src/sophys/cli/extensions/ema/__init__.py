@@ -145,6 +145,9 @@ class Plan1DScan(PlanCLI):
 
 
 class PlanMotorOrigin(PlanCLI):
+    def _usage(self):
+        return "%(prog)s motor [position] [--md key=value key=value ...]"
+
     def create_parser(self):
         _a = super().create_parser()
 
