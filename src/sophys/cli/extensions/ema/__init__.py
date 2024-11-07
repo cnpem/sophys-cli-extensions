@@ -234,7 +234,7 @@ whitelisted_plan_list = [
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
     PlanInformation("scan1d", "ascan", PlanAbs1DScan),
     PlanInformation("scan1d", "rscan", PlanRel1DScan),
-    PlanInformation("set_motor_origin", "mset", PlanMotorOrigin),
+    PlanInformation("motor_set_origin", "mset", PlanMotorOrigin),
 ]
 
 whitelisted_plan_md_preprocessors = [
