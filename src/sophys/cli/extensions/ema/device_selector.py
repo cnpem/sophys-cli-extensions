@@ -1,4 +1,5 @@
 import functools
+import json
 import logging
 import subprocess
 
@@ -81,20 +82,29 @@ class SeparateROIConfigurationWidget(QWidget):
         self.setVisible(False)
 
         try:
-            from suitscase.widgets.area_detector.plugin_list import getSimplifiedPluginConfigurationFile
+            from suitscase.widgets.area_detector.plugin_list import (
+                getSimplifiedPluginConfigurationFile,
+                getSimplifiedExtraPluginConfigurationMacros,
+            )
         except ImportError:
             logging.error("Failed to import suitscase, which is required for this option.")
             return
 
-        base_command = "pydm --hide-nav-bar --hide-menu-bar --hide-status-bar"
+        from pathlib import Path
+        base_command = [str(Path(__file__).parent / "open_plugin_page.sh")]
+
         roi_file_path = getSimplifiedPluginConfigurationFile("NDPluginROI")
+        roi_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginROI")
         stats_file_path = getSimplifiedPluginConfigurationFile("NDPluginStats")
+        stats_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginStats")
 
         def roi_btn_callback(n):
-            subprocess.Popen(f"{base_command} -m P={self.parent_prefix},R=ROI{n} {roi_file_path}".split(" "))
+            macros = {"P": self.parent_prefix, "R": f"ROI{n}", **roi_macros}
+            subprocess.Popen([*base_command, "-m", json.dumps(macros), roi_file_path])
 
         def stats_btn_callback(n):
-            subprocess.Popen(f"{base_command} -m P={self.parent_prefix},R=Stats{n} {stats_file_path}".split(" "))
+            macros = {"P": self.parent_prefix, "R": f"Stats{n}", **stats_macros}
+            subprocess.Popen([*base_command, "-m", json.dumps(macros), stats_file_path])
 
         layout = QGridLayout()
         layout.addWidget(label("ROI plugin"), 0, 1, 1, 2)
@@ -144,16 +154,21 @@ class CombinedROIConfigurationWidget(QWidget):
         self.setVisible(False)
 
         try:
-            from suitscase.widgets.area_detector.plugin_list import getSimplifiedPluginConfigurationFile
+            from suitscase.widgets.area_detector.plugin_list import (
+                getSimplifiedPluginConfigurationFile,
+                getSimplifiedExtraPluginConfigurationMacros,
+            )
         except ImportError:
             logging.error("Failed to import suitscase, which is required for this option.")
             return
 
-        base_command = "pydm --hide-nav-bar --hide-menu-bar --hide-status-bar"
+        base_command = "pydm --hide-nav-bar --hide-menu-bar --hide-status-bar".split(' ')
         roistat_file_path = getSimplifiedPluginConfigurationFile("NDPluginROIStat")
+        roistat_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginROIStat")
 
         def roistat_btn_callback(n):
-            subprocess.Popen(f"{base_command} -m P={self.parent_prefix},R=ROIStat{n} {roistat_file_path}".split(" "))
+            macros = {"P": self.parent_prefix, "R": f"ROIStat{n}", **roistat_macros}
+            subprocess.Popen([*base_command, "-m", json.dumps(macros), roistat_file_path])
 
         layout = QGridLayout()
         layout.addWidget(label("ROIStat plugin"), 0, 1, 1, 2)
