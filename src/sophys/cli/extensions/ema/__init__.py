@@ -52,7 +52,7 @@ class UtilityMagics(Magics):
     def disable_auto_increment(self, line, local_ns):
         persistent_metadata = get_from_namespace(NamespaceKeys.PERSISTENT_METADATA, ns=local_ns)
 
-        key = "metadata_save_disable_auto_increment"
+        key = "metadata_save_increment_disable"
         if persistent_metadata.get_entry(key) is None:
             persistent_metadata.add_entry(key, "Disabled")
             print("Disabled auto-increment of metadata file name.")
