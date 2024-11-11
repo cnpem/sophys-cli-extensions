@@ -6,7 +6,7 @@ from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 
 
-PLAN_WHITELIST = PlanWhitelist([
+PLAN_WHITELIST = PlanWhitelist(*[
     PlanInformation("mv", "mov", PlanMV),
     PlanInformation("count", "count", PlanCount),
     PlanInformation("scan", "scan", PlanScan),
@@ -19,7 +19,7 @@ def load_ipython_extension(ipython):
     local_mode = ipython.user_ns.get("LOCAL_MODE", False)
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
-    setup_plan_magics(ipython, "common", PLAN_WHITELIST, mode_of_op)
+    setup_plan_magics(ipython, "test", PLAN_WHITELIST, mode_of_op)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(KBLMagics)
 
@@ -32,7 +32,7 @@ def load_ipython_extension(ipython):
     if not local_mode:
         setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
     else:
-        plans = set(i[0].user_name for i in get_plans("common", PLAN_WHITELIST))
+        plans = set(i[0].user_name for i in get_plans("test", PLAN_WHITELIST))
         add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
 
 
