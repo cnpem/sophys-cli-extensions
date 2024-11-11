@@ -12,7 +12,7 @@ from .. import render_custom_magics, setup_remote_session_handler, setup_plan_ma
 from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
-from ..plan_magics import PlanMV, PlanReadMany, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from ..plan_magics import PlanMV, PlanReadMany, PlanCount, PlanScan, PlanAdaptiveScan
 from ..plan_magics import PlanCLI, BPlan
 
 from .device_selector import spawnDeviceSelector
@@ -142,6 +142,117 @@ class Plan1DScan(PlanCLI):
             return functools.partial(self._plan, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+
+
+class PlanGridScan(PlanCLI):
+    def _usage(self):
+        return "%(prog)s motor start stop num motor start stop num [motor start stop num ...] [exposure_time] [-s/--snake] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+
+    def _description(self):
+        return super()._description() + """
+
+Example usages:
+
+grid_scan ms2l 0.49 0.495 6 ms2r 0.488 0.49 3
+    Make a 2D scan over 6 points on the 'ms2l' motor, from point 0.49 to point 0.492,
+    in absolute coordinates, and 3 points on the 'ms2r' motor, from point 0.488 to point 0.49,
+    again in absolute coordinates, without snaking, with the 'ms2l' axis changing the slowest:
+
+                        |--------------------------------------|
+              0.490     |-----x----->------x------>-----x------|
+                        |------------------<-------------------|
+              0.491     |-----x----->------x------>-----x------|
+                        |------------------<-------------------|
+              0.492     |-----x----->------x------>-----x------|
+                        |------------------<-------------------|
+              0.493     |-----x----->------x------>-----x------|
+                        |------------------<-------------------|
+              0.494     |-----x----->------x------>-----x------|
+                        |------------------<-------------------|
+              0.495     |-----x----->------x------>-----x------|
+                        |--------------------------------------|
+                           0.4880       0.4890       0.4900
+    ms2l position (abs)           ms2r position (abs)
+
+    The exposure time used is the one set before the scan on the IOC.
+
+grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.495 6 0.1 -s
+    Make a 2D scan over 3 points on the 'ms2r' motor, from point 0.488 to point 0.49,
+    in absolute coordinates, and 6 points on the 'ms2l' motor, from point 0.49 to
+    point 0.492, again in absolute coordinates, with snaking, with the 'ms2r' axis
+    changing the slowest, and per-point exposure time equal to 0.1 seconds:
+
+                        |--------------------------------|
+              0.490     |-----x---------x---->----x------|
+                        |-----|---------|---------|------|
+              0.491     |-----x---------x---------x------|
+                        |-----|---------|---------|------|
+              0.492     |-----x---------x---------x------|
+                        |-----v---------|---------v------|
+              0.493     |-----x---------x---------x------|
+                        |-----|---------|---------|------|
+              0.494     |-----x---------x---------x------|
+                        |-----|---------|---------|------|
+              0.495     |-----x---->----x---------x------|
+                        |--------------------------------|
+                           0.4880    0.4890    0.4900
+    ms2l position (abs)        ms2r position (abs)
+
+"""
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("first_motor", nargs=1, type=str, help="Mnemonic of the motor on the slowest axis to move.")
+        _a.add_argument("first_start", type=float, help="Start position of the first motor, in the motor's EGU.")
+        _a.add_argument("first_stop", type=float, help="End position of the first motor, in the motor's EGU.")
+        _a.add_argument("first_num", type=int, help="Number of points between the start and end positions of the first motor.")
+        _a.add_argument("second_motor", nargs=1, type=str, help="Mnemonic of the motor on the second slowest axis to move.")
+        _a.add_argument("second_start", type=float, help="Start position of the second motor, in the motor's EGU.")
+        _a.add_argument("second_stop", type=float, help="End position of the second motor, in the motor's EGU.")
+        _a.add_argument("second_num", type=int, help="Number of points between the start and end positions of the second motor.")
+        _a.add_argument("args", type=str, nargs="*", help="Other axes to move, in the same argument ordering as the first two.")
+        _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
+        _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
+        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
+        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+        args = [
+            parsed_namespace.first_motor,
+            parsed_namespace.first_start,
+            parsed_namespace.first_stop,
+            parsed_namespace.first_num,
+            parsed_namespace.second_motor,
+            parsed_namespace.second_start,
+            parsed_namespace.second_stop,
+            parsed_namespace.second_num,
+            *parsed_namespace.args
+        ]
+        args, _, motor_names = self.parse_varargs(args, local_ns=local_ns)
+
+        exp_time = parsed_namespace.exposure_time
+
+        md = self.parse_md(*parsed_namespace.detectors, *motor_names, ns=parsed_namespace)
+
+        template = parsed_namespace.hdf_file_name or "gridscan_%H_%M_%S"
+        from datetime import datetime
+        hdf_file_name = datetime.now().strftime(template)
+
+        hdf_file_path = parsed_namespace.hdf_file_path
+        if hdf_file_path is None:
+            hdf_file_path = os.getcwd()
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = hdf_file_path
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, detector, args, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, detector, args, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
 
 
 class PlanMotorOrigin(PlanCLI):
