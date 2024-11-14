@@ -107,12 +107,10 @@ class SourcedCheckBox(QCheckBox):
         self.toggled.connect(self.onToggle)
 
     def onToggle(self, got_checked: bool):
-        for key in self._keys:
-            print(key)
-            if got_checked:
-                self._data_source.add(self._data_type, key)
-            else:
-                self._data_source.remove(self._data_type, key)
+        if got_checked:
+            self._data_source.add(self._data_type, *self._keys)
+        else:
+            self._data_source.remove(self._data_type, *self._keys)
 
 
 class SeparateROIConfigurationWidget(QWidget):
