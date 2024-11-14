@@ -36,30 +36,30 @@ class DeviceItem:
 
 __VORTEX_EXTRA_MNEMONICS = {
     DataSource.DataType.DETECTORS: (
-        "xrf1r1", "xrf1r2", "xrf1r3", "xrf1r4", "xrf1r5", "xrf1r6",
-        "xrf2r1", "xrf2r2", "xrf2r3", "xrf2r4", "xrf2r5", "xrf2r6",
-        "xrf3r1", "xrf3r2", "xrf3r3", "xrf3r4", "xrf3r5", "xrf3r6",
-        "xrf4r1", "xrf4r2", "xrf4r3", "xrf4r4", "xrf4r5", "xrf4r6",
+        "xrf1r1", "xrf1r2", "xrf1r3", "xrf1r4", #"xrf1r5", "xrf1r6",
+        "xrf2r1", "xrf2r2", "xrf2r3", "xrf2r4", #"xrf2r5", "xrf2r6",
+        "xrf3r1", "xrf3r2", "xrf3r3", "xrf3r4", #"xrf3r5", "xrf3r6",
+        "xrf4r1", "xrf4r2", "xrf4r3", "xrf4r4", #"xrf4r5", "xrf4r6",
     ),
     DataSource.DataType.BEFORE: (
         "xrf1r1h", "xrf1r1l", "xrf1r2h", "xrf1r2l", "xrf1r3h", "xrf1r3l",
-        "xrf1r4h", "xrf1r4l", "xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
+        "xrf1r4h", "xrf1r4l", #"xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
         "xrf2r1h", "xrf2r1l", "xrf2r2h", "xrf2r2l", "xrf2r3h", "xrf2r3l",
-        "xrf2r4h", "xrf2r4l", "xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
+        "xrf2r4h", "xrf2r4l", #"xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
         "xrf3r1h", "xrf3r1l", "xrf3r2h", "xrf3r2l", "xrf3r3h", "xrf3r3l",
-        "xrf3r4h", "xrf3r4l", "xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
+        "xrf3r4h", "xrf3r4l", #"xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
         "xrf4r1h", "xrf4r1l", "xrf4r2h", "xrf4r2l", "xrf4r3h", "xrf4r3l",
-        "xrf4r4h", "xrf4r4l", "xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
+        "xrf4r4h", "xrf4r4l", #"xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
     ),
     DataSource.DataType.AFTER: (
         "xrf1r1h", "xrf1r1l", "xrf1r2h", "xrf1r2l", "xrf1r3h", "xrf1r3l",
-        "xrf1r4h", "xrf1r4l", "xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
+        "xrf1r4h", "xrf1r4l", #"xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
         "xrf2r1h", "xrf2r1l", "xrf2r2h", "xrf2r2l", "xrf2r3h", "xrf2r3l",
-        "xrf2r4h", "xrf2r4l", "xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
+        "xrf2r4h", "xrf2r4l", #"xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
         "xrf3r1h", "xrf3r1l", "xrf3r2h", "xrf3r2l", "xrf3r3h", "xrf3r3l",
-        "xrf3r4h", "xrf3r4l", "xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
+        "xrf3r4h", "xrf3r4l", #"xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
         "xrf4r1h", "xrf4r1l", "xrf4r2h", "xrf4r2l", "xrf4r3h", "xrf4r3l",
-        "xrf4r4h", "xrf4r4l", "xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
+        "xrf4r4h", "xrf4r4l", #"xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
     ),
 }
 
