@@ -41,7 +41,7 @@ def add_metadata(line: str, source: DataSource):
     return f"{line.strip()} --md {md.strip()}"
 
 
-def input_processor(lines: list[str], plan_whitelist: dict[str, PlanInformation], data_source: DataSource):
+def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 

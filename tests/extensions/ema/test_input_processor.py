@@ -2,7 +2,7 @@ import pytest
 
 from sophys.cli.data_source import LocalFileDataSource
 from sophys.cli.extensions.plan_magics import PlanInformation
-from sophys.cli.extensions.ema import PLAN_WHITELIST
+from sophys.cli.extensions.ema import whitelisted_plan_list
 from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadata, input_processor
 
 
@@ -64,4 +64,4 @@ def test_add_metadata(sample_line, expected, local_data_source):
         (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"])
     ])
 def test_input_processor(sample_lines, expected, local_data_source):
-    assert (ret := input_processor(sample_lines, PLAN_WHITELIST, local_data_source)) == expected, ret
+    assert (ret := input_processor(sample_lines, whitelisted_plan_list, local_data_source)) == expected, ret
