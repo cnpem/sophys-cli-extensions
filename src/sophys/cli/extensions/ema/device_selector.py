@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 import subprocess
+import typing
 
 from dataclasses import dataclass
 from enum import IntFlag
@@ -24,6 +25,13 @@ class DeviceItem:
     user_name: str
     mnemonic: str
     type: DeviceType
+
+    extra_mnemonics: typing.Optional[dict[DataSource.DataType, tuple[str]]] = None
+
+    def get_all_mnemonics(self, data_type: DataSource.DataType) -> tuple[str]:
+        if self.extra_mnemonics is None:
+            return (self.mnemonic,)
+        return (self.mnemonic, *self.extra_mnemonics.get(data_type, tuple()))
 
 
 EMA_DEVICES = [
@@ -56,23 +64,25 @@ def label(text, alignment=Qt.AlignHCenter):
 
 
 class SourcedCheckBox(QCheckBox):
-    def __init__(self, data_source: DataSource, type: DataSource.DataType, key: str, parent=None):
+    def __init__(self, data_source: DataSource, type: DataSource.DataType, keys: tuple[str], parent=None):
         super().__init__(parent)
 
         self._data_source = data_source
         self._data_type = type
-        self._key = key
+        self._keys = keys
 
-        if self._key in self._data_source.get(type):
+        if any(key in self._data_source.get(type) for key in self._keys):
             self.setChecked(True)
 
         self.toggled.connect(self.onToggle)
 
     def onToggle(self, got_checked: bool):
-        if got_checked:
-            self._data_source.add(self._data_type, self._key)
-        else:
-            self._data_source.remove(self._data_type, self._key)
+        for key in self._keys:
+            print(key)
+            if got_checked:
+                self._data_source.add(self._data_type, key)
+            else:
+                self._data_source.remove(self._data_type, key)
 
 
 class SeparateROIConfigurationWidget(QWidget):
@@ -258,17 +268,20 @@ class DeviceSelectorMainWindow(QMainWindow):
             layout.addWidget(label(item.mnemonic), row, 1, 1, 1)
 
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 2, 1, 1)
-            before_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.BEFORE, item.mnemonic)
+            before_mnemonics = item.get_all_mnemonics(DataSource.DataType.BEFORE)
+            before_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.BEFORE, before_mnemonics)
             layout.addWidget(before_checkbox, row, 3, 1, 1)
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 4, 1, 1)
 
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 5, 1, 1)
-            during_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.DETECTORS, item.mnemonic)
+            during_mnemonics = item.get_all_mnemonics(DataSource.DataType.DETECTORS)
+            during_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.DETECTORS, during_mnemonics)
             layout.addWidget(during_checkbox, row, 6, 1, 1)
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 7, 1, 1)
 
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 8, 1, 1)
-            after_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.AFTER, item.mnemonic)
+            after_mnemonics = item.get_all_mnemonics(DataSource.DataType.AFTER)
+            after_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.AFTER, after_mnemonics)
             layout.addWidget(after_checkbox, row, 9, 1, 1)
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 10, 1, 1)
 
