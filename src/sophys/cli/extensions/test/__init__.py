@@ -1,9 +1,9 @@
-from .. import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace
+from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace
 
-from ..plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
-from ..tools_magics import KBLMagics, HTTPMagics, MiscMagics
+from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
+from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
-from ..plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from sophys.cli.core.magics.plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 
 
 PLAN_WHITELIST = PlanWhitelist(*[

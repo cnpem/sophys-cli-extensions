@@ -1,7 +1,7 @@
 import pytest
 
-from sophys.cli.data_source import LocalFileDataSource
-from sophys.cli.extensions.plan_magics import PlanInformation
+from sophys.cli.core.data_source import LocalFileDataSource
+from sophys.cli.core.magics.plan_magics import PlanInformation
 from sophys.cli.extensions.ema import whitelisted_plan_list
 from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadata, input_processor
 

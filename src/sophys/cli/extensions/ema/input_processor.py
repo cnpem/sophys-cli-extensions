@@ -2,8 +2,8 @@ import functools
 import logging
 import typing
 
-from ...data_source import DataSource
-from ..plan_magics import PlanInformation
+from sophys.cli.core.data_source import DataSource
+from sophys.cli.core.magics.plan_magics import PlanInformation
 
 
 def add_detectors(line: str, source: DataSource, plan_information: typing.Optional[PlanInformation] = None):
