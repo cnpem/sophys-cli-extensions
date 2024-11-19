@@ -7,7 +7,7 @@ from IPython.core.magic import Magics, magics_class, line_magic, needs_local_sco
 from sophys.cli.core.data_source import LocalInMemoryDataSource, RedisDataSource
 from sophys.cli.core.persistent_metadata import PersistentMetadata
 
-from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace
+from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace, get_color
 
 from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
@@ -34,7 +34,7 @@ class DeviceSelectorMagics(Magics):
     @staticmethod
     def description():
         tools = []
-        tools.append(("eds", "Open the EMA Device Selector", "\x1b[38;5;82m"))
+        tools.append(("eds", "Open the EMA Device Selector", get_color("\x1b[38;5;82m")))
         return tools
 
 
@@ -63,8 +63,8 @@ class UtilityMagics(Magics):
     @staticmethod
     def description():
         tools = []
-        tools.append(("newfile", "Configure the local metadata so metadata files are created with the specified name.", "\x1b[38;5;218m"))
-        tools.append(("disable_auto_increment", "Toggle usage of auto-increment in the metadata file name.", "\x1b[38;5;218m"))
+        tools.append(("newfile", "Configure the local metadata so metadata files are created with the specified name.", get_color("\x1b[38;5;218m")))
+        tools.append(("disable_auto_increment", "Toggle usage of auto-increment in the metadata file name.", get_color("\x1b[38;5;218m")))
         return tools
 
 
