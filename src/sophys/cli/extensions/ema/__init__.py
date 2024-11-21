@@ -197,7 +197,6 @@ grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
         _a.add_argument("second_start", type=float, help="Start position of the second motor, in the motor's EGU.")
         _a.add_argument("second_stop", type=float, help="End position of the second motor, in the motor's EGU.")
         _a.add_argument("second_num", type=int, help="Number of points between the start and end positions of the second motor.")
-        _a.add_argument("args", type=str, nargs="*", help="Other axes to move, in the same argument ordering as the first two.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
         _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
         _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
@@ -216,7 +215,6 @@ grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
             parsed_namespace.second_start,
             parsed_namespace.second_stop,
             parsed_namespace.second_num,
-            *parsed_namespace.args
         ]
         args, _, motor_names = self.parse_varargs(args, local_ns=local_ns)
 
