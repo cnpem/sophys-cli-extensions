@@ -153,47 +153,33 @@ class PlanGridScan(PlanCLI):
 
 Example usages:
 
-grid_scan ms2l 0.49 0.495 6 ms2r 0.488 0.49 3
-    Make a 2D scan over 6 points on the 'ms2l' motor, from point 0.49 to point 0.492,
-    in absolute coordinates, and 3 points on the 'ms2r' motor, from point 0.488 to point 0.49,
-    again in absolute coordinates, without snaking, with the 'ms2l' axis changing the slowest:
+grid_scan ms2l 0.49 0.494 3 ms2r 0.488 0.49 3
+    Make a 2D scan over 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, in absolute coordinates,
+    and 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, without snaking, with the 'ms2l' axis changing the slowest:
 
                         |--------------------------------------|
               0.490     |-----x----->------x------>-----x------|
                         |------------------<-------------------|
-              0.491     |-----x----->------x------>-----x------|
-                        |------------------<-------------------|
               0.492     |-----x----->------x------>-----x------|
                         |------------------<-------------------|
-              0.493     |-----x----->------x------>-----x------|
-                        |------------------<-------------------|
               0.494     |-----x----->------x------>-----x------|
-                        |------------------<-------------------|
-              0.495     |-----x----->------x------>-----x------|
                         |--------------------------------------|
                            0.4880       0.4890       0.4900
     ms2l position (abs)           ms2r position (abs)
 
     The exposure time used is the one set before the scan on the IOC.
 
-grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.495 6 0.1 -s
-    Make a 2D scan over 3 points on the 'ms2r' motor, from point 0.488 to point 0.49,
-    in absolute coordinates, and 6 points on the 'ms2l' motor, from point 0.49 to
-    point 0.492, again in absolute coordinates, with snaking, with the 'ms2r' axis
-    changing the slowest, and per-point exposure time equal to 0.1 seconds:
+grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
+    Make a 2D scan over 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, in absolute coordinates,
+    and 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, with snaking, with the 'ms2r' axis changing
+    the slowest, and per-point exposure time equal to 0.1 seconds:
 
                         |--------------------------------|
               0.490     |-----x---------x---->----x------|
                         |-----|---------|---------|------|
-              0.491     |-----x---------x---------x------|
-                        |-----|---------|---------|------|
               0.492     |-----x---------x---------x------|
-                        |-----v---------|---------v------|
-              0.493     |-----x---------x---------x------|
                         |-----|---------|---------|------|
-              0.494     |-----x---------x---------x------|
-                        |-----|---------|---------|------|
-              0.495     |-----x---->----x---------x------|
+              0.494     |-----x---->----x---------x------|
                         |--------------------------------|
                            0.4880    0.4890    0.4900
     ms2l position (abs)        ms2r position (abs)
