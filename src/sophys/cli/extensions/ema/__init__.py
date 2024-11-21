@@ -325,6 +325,7 @@ rscan wst 0.0 0.4 5 0.1
 
 whitelisted_plan_list = [
     PlanInformation("mov", "mov", PlanMV, has_detectors=False),
+    PlanInformation("rmov", "rmov", PlanMV, has_detectors=False),
     PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
     PlanInformation("count", "count", PlanCount),
     PlanInformation("scan", "scan", PlanScan),
