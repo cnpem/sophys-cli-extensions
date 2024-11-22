@@ -207,11 +207,11 @@ grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
     def _create_plan(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
         args = [
-            parsed_namespace.first_motor,
+            parsed_namespace.first_motor[0],
             parsed_namespace.first_start,
             parsed_namespace.first_stop,
             parsed_namespace.first_num,
-            parsed_namespace.second_motor,
+            parsed_namespace.second_motor[0],
             parsed_namespace.second_start,
             parsed_namespace.second_stop,
             parsed_namespace.second_num,
@@ -219,6 +219,7 @@ grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
         args, _, motor_names = self.parse_varargs(args, local_ns=local_ns)
 
         exp_time = parsed_namespace.exposure_time
+        snake = parsed_namespace.snake
 
         md = self.parse_md(*parsed_namespace.detectors, *motor_names, ns=parsed_namespace)
 
@@ -234,9 +235,9 @@ grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
             md["metadata_save_file_location"] = hdf_file_path
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, args, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, args, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
 
 
 class PlanMotorOrigin(PlanCLI):
