@@ -341,8 +341,12 @@ whitelisted_plan_md_preprocessors = [
 ]
 
 
-def setup_input_transformer(ipython, plan_whitelist):
-    remote_data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+def setup_input_transformer(ipython, plan_whitelist, test_mode: bool = False):
+    if test_mode:
+        remote_data_source = LocalInMemoryDataSource()
+    else:
+        remote_data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+
     add_to_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, remote_data_source, ipython=ipython)
 
     proc = functools.partial(input_processor, plan_whitelist=plan_whitelist, data_source=remote_data_source)
@@ -367,6 +371,8 @@ def after_plan_submission_callback(ipython):
 
 def load_ipython_extension(ipython):
     local_mode = get_from_namespace(NamespaceKeys.LOCAL_MODE, False, ipython)
+    test_mode = get_from_namespace(NamespaceKeys.TEST_MODE, False, ipython)
+
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
     post_submission_callbacks = []
@@ -382,13 +388,14 @@ def load_ipython_extension(ipython):
     ipython.register_magics(MiscMagics)
     ipython.register_magics(UtilityMagics)
     ipython.register_magics(KBLMagics)
-    setup_input_transformer(ipython, plan_whitelist)
+    setup_input_transformer(ipython, plan_whitelist, test_mode)
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
 
-    add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md", "disable_auto_increment"})
+    if not test_mode:
+        add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md", "disable_auto_increment"})
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
