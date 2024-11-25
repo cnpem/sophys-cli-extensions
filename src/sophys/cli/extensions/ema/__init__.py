@@ -4,6 +4,8 @@ import os
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
+from sophys.cli.core import REDIS_HOST_ENVVAR, REDIS_PORT_ENVVAR, HTTPSERVER_HOST_ENVVAR, HTTPSERVER_PORT_ENVVAR
+
 from sophys.cli.core.data_source import LocalInMemoryDataSource, RedisDataSource
 from sophys.cli.core.persistent_metadata import PersistentMetadata
 
@@ -444,7 +446,9 @@ def setup_input_transformer(ipython, plan_whitelist, test_mode: bool = False):
     if test_mode:
         remote_data_source = LocalInMemoryDataSource()
     else:
-        remote_data_source = RedisDataSource("***REMOVED***", ***REMOVED***)
+        host = os.environ.get(REDIS_HOST_ENVVAR, "localhost")
+        port = os.environ.get(REDIS_PORT_ENVVAR, "6379")
+        remote_data_source = RedisDataSource(host, port)
 
     add_to_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, remote_data_source, ipython=ipython)
 
@@ -498,7 +502,9 @@ def load_ipython_extension(ipython):
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
-        setup_remote_session_handler(ipython, "http://***REMOVED***:***REMOVED***")
+        host = os.environ.get(HTTPSERVER_HOST_ENVVAR, "localhost")
+        port = os.environ.get(HTTPSERVER_PORT_ENVVAR, "1")
+        setup_remote_session_handler(ipython, f"http://{host}:{port}")
     else:
         plans = set(i[0].user_name for i in get_plans("ema", plan_whitelist))
         add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
