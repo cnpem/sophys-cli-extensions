@@ -366,7 +366,7 @@ def after_plan_submission_callback(ipython):
 
 
 def load_ipython_extension(ipython):
-    local_mode = ipython.user_ns.get("LOCAL_MODE", False)
+    local_mode = get_from_namespace(NamespaceKeys.LOCAL_MODE, False, ipython)
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
     post_submission_callbacks = []

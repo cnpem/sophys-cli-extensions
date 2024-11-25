@@ -1,4 +1,4 @@
-from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace
+from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace, get_from_namespace
 
 from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
@@ -16,7 +16,7 @@ PLAN_WHITELIST = PlanWhitelist(*[
 
 
 def load_ipython_extension(ipython):
-    local_mode = ipython.user_ns.get("LOCAL_MODE", False)
+    local_mode = get_from_namespace(NamespaceKeys.LOCAL_MODE, False, ipython)
     mode_of_op = ModeOfOperation.Local if local_mode else ModeOfOperation.Remote
 
     setup_plan_magics(ipython, "test", PLAN_WHITELIST, mode_of_op)
