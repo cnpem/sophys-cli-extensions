@@ -74,7 +74,9 @@ def populate_mnemonics(*devices, md):
     res = dict()
 
     def inner(mnemonic, pv_name):
-        if pv_name is None:
+        if mnemonic.startswith("sim_"):
+            res[mnemonic] = mnemonic
+        elif pv_name is None:
             logging.warning("No PV name found for mnemonic '%s'.", mnemonic)
         else:
             res[mnemonic] = pv_name
