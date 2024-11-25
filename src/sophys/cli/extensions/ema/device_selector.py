@@ -11,13 +11,15 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QCheckBox, QSpacerItem, QWidget, QPushButton
 
 from sophys.cli.core.data_source import DataSource
+from sophys.cli.core.magics import NamespaceKeys, get_from_namespace
 
 
 class DeviceType(IntFlag):
-    READABLE = 0b0001
-    SETTABLE = 0b0010
-    WITH_SEPARATE_AD_ROI = 0b0100  # Separate ROI and Stats plugins
-    WITH_COMBINED_AD_ROI = 0b1000  # Unified ROIStats plugin
+    READABLE = 0b00001
+    SETTABLE = 0b00010
+    SIMULATED = 0b00100
+    WITH_SEPARATE_AD_ROI = 0b01000  # Separate ROI and Stats plugins
+    WITH_COMBINED_AD_ROI = 0b10000  # Unified ROIStats plugin
 
 
 @dataclass
@@ -84,6 +86,20 @@ EMA_DEVICES = [
     DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
     DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
     DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE | DeviceType.WITH_COMBINED_AD_ROI),  # noqa: E203
+
+    DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
+
+    DeviceItem("Motor", "sim_motor", DeviceType.SIMULATED),
+    DeviceItem("Detector (Motor)", "sim_det", DeviceType.SIMULATED),
+    DeviceItem("Noisy Detector (Motor)", "sim_noisy_det", DeviceType.SIMULATED),
+
+    DeviceItem("Motor 1", "sim_motor1", DeviceType.SIMULATED),
+    DeviceItem("Motor 2", "sim_motor2", DeviceType.SIMULATED),
+    DeviceItem("Detector (Motor 1 + Motor 2)", "sim_det4", DeviceType.SIMULATED),
+
+    DeviceItem("Jittery Motor 1", "sim_jittery_motor1", DeviceType.SIMULATED),
+    DeviceItem("Jittery Motor 2", "sim_jittery_motor2", DeviceType.SIMULATED),
+    DeviceItem("Detector (Jittery Motor 1 + Jittery Motor 2)", "sim_det5", DeviceType.SIMULATED),
 ]
 
 
@@ -245,30 +261,45 @@ class CombinedROIConfigurationPushButton(QPushButton):
 
 
 class DeviceSelectorMainWindow(QMainWindow):
-    def __init__(self, data_source: DataSource, parent=None):
+    def __init__(self, data_source: DataSource, in_test_mode: bool = False, parent=None):
         super().__init__(parent)
 
         self._data_source = data_source
 
         self.main_layout = QVBoxLayout()
-        main_title = QLabel("<h1>EMA Device Selector</h1>")
+
+        main_title_text = "<h1>EMA Device Selector</h1>"
+        if in_test_mode:
+            main_title_text += f"<br/><h4>Testing mode ({data_source.__class__.__name__})</h4>"
+
+        main_title = QLabel(main_title_text)
         main_title.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(main_title)
 
         readable_page = QWidget()
         settable_page = QWidget()
+        simulated_page = None
 
         readable_form = QGridLayout()
         settable_form = QGridLayout()
+        simulated_form = None
 
-        self.populateDevices(readable_form, settable_form)
+        if in_test_mode:
+            simulated_page = QWidget()
+            simulated_form = QGridLayout()
+
+        self.populateDevices(readable_form, settable_form, simulated_form)
 
         readable_page.setLayout(readable_form)
         settable_page.setLayout(settable_form)
+        if simulated_page is not None:
+            simulated_page.setLayout(simulated_form)
 
         device_type_tab_widget = QTabWidget()
         device_type_tab_widget.addTab(readable_page, "Detectors")
         device_type_tab_widget.addTab(settable_page, "Motors")
+        if simulated_page is not None:
+            device_type_tab_widget.addTab(simulated_page, "Simulated")
         self.main_layout.addWidget(device_type_tab_widget)
 
         main_frame = QFrame()
@@ -278,13 +309,17 @@ class DeviceSelectorMainWindow(QMainWindow):
 
         self.setCentralWidget(main_frame)
 
-    def populateDevices(self, readable_form: QGridLayout, settable_form: QGridLayout):
-        readable_form.addWidget(label("Device name"), 0, 0, 1, 1)
-        readable_form.addWidget(label("Mnemonic"), 0, 1, 1, 1)
-        readable_form.addWidget(label("Read configuration"), 0, 2, 1, 10)
-        readable_form.addWidget(label("Before the scan"), 1, 2, 1, 3)
-        readable_form.addWidget(label("During the scan"), 1, 5, 1, 3)
-        readable_form.addWidget(label("After the scan"), 1, 8, 1, 3)
+    def populateDevices(self, readable_form: QGridLayout, settable_form: QGridLayout, simulated_form: typing.Optional[QGridLayout] = None):
+        for form in (readable_form, settable_form, simulated_form):
+            if form is None:
+                continue
+
+            form.addWidget(label("Device name"), 0, 0, 1, 1)
+            form.addWidget(label("Mnemonic"), 0, 1, 1, 1)
+            form.addWidget(label("Read configuration"), 0, 2, 1, 10)
+            form.addWidget(label("Before the scan"), 1, 2, 1, 3)
+            form.addWidget(label("During the scan"), 1, 5, 1, 3)
+            form.addWidget(label("After the scan"), 1, 8, 1, 3)
 
         def add_to_layout(item, layout):
             row = layout.rowCount()
@@ -333,6 +368,8 @@ class DeviceSelectorMainWindow(QMainWindow):
                 add_to_layout(item, readable_form)
             if item.type & DeviceType.SETTABLE:
                 add_to_layout(item, settable_form)
+            if item.type & DeviceType.SIMULATED and (simulated_form is not None):
+                add_to_layout(item, simulated_form)
 
 
 WINDOW_STYLESHEET = """
@@ -356,16 +393,17 @@ QTabBar::tab:selected {
 
 
 def spawnDeviceSelector(data_source: DataSource):
-    def __main(data_source: DataSource):
+    def __main(data_source: DataSource, in_test_mode: bool):
         if QApplication.instance():
             app = QApplication.instance()
         else:
             app = QApplication(["EMA Device Selector"])
 
-        main_window = DeviceSelectorMainWindow(data_source)
+        main_window = DeviceSelectorMainWindow(data_source, in_test_mode)
         main_window.setStyleSheet(WINDOW_STYLESHEET)
         main_window.show()
 
         app.exec()
 
-    __main(data_source)
+    in_test_mode = get_from_namespace(NamespaceKeys.TEST_MODE, False)
+    __main(data_source, in_test_mode)
