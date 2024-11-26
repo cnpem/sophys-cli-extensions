@@ -28,3 +28,4 @@ With that, you'll have access to the `sophys-cli` command in the environment you
 
 For usage and development information, refer to the `sophys-cli-core` documentation.
 
+These extensions make use of environment variables to configure host and port variables for connection with httpserver and redis. These environment variable names are defined in `sophys-cli-core`, under their root `__init__.py`.
