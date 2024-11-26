@@ -66,6 +66,26 @@ __VORTEX_EXTRA_MNEMONICS = {
 }
 
 
+__PILATUS_EXTRA_MNEMONICS = {
+    DataSource.DataType.DETECTORS: (
+        "ad4r1", "ad4r2", "ad4r3", "ad4r4",
+        "ad4r5", "ad4r6", "ad4r7", "ad4r8",
+    ),
+    DataSource.DataType.BEFORE: (
+        "ad4r1xi", "ad4r2xi", "ad4r3xi", "ad4r4xi",
+        "ad4r5xi", "ad4r6xi", "ad4r7xi", "ad4r8xi",
+        "ad4r1xs", "ad4r2xs", "ad4r3xs", "ad4r4xs",
+        "ad4r5xs", "ad4r6xs", "ad4r7xs", "ad4r8xs",
+    ),
+    DataSource.DataType.AFTER: (
+        "ad4r1xi", "ad4r2xi", "ad4r3xi", "ad4r4xi",
+        "ad4r5xi", "ad4r6xi", "ad4r7xi", "ad4r8xi",
+        "ad4r1xs", "ad4r2xs", "ad4r3xs", "ad4r4xs",
+        "ad4r5xs", "ad4r6xs", "ad4r7xs", "ad4r8xs",
+    ),
+}
+
+
 EMA_DEVICES = [
     DeviceItem("Ring current", "rcurr", DeviceType.READABLE),
 
@@ -85,7 +105,7 @@ EMA_DEVICES = [
     DeviceItem("Vortex"           , "xrf", DeviceType.READABLE, __VORTEX_EXTRA_MNEMONICS),  # noqa: E203
     DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
     DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
-    DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE | DeviceType.WITH_COMBINED_AD_ROI),  # noqa: E203
+    DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE | DeviceType.WITH_COMBINED_AD_ROI, __PILATUS_EXTRA_MNEMONICS),  # noqa: E203
 
     DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
 
