@@ -469,7 +469,7 @@ def setup_persistent_metadata(ipython):
 
 
 def after_plan_submission_callback(ipython):
-    ipython.run_line_magic("wait_for_idle", "")
+    return ipython.run_line_magic("wait_for_idle", "")
 
 
 def load_ipython_extension(ipython):
