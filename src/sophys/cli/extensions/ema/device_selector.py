@@ -15,11 +15,14 @@ from sophys.cli.core.magics import NamespaceKeys, get_from_namespace
 
 
 class DeviceType(IntFlag):
-    READABLE = 0b00001
-    SETTABLE = 0b00010
-    SIMULATED = 0b00100
-    WITH_SEPARATE_AD_ROI = 0b01000  # Separate ROI and Stats plugins
-    WITH_COMBINED_AD_ROI = 0b10000  # Unified ROIStats plugin
+    READABLE = 0b001
+    SETTABLE = 0b010
+    SIMULATED = 0b100
+
+
+class DeviceROIType(IntFlag):
+    WITH_SEPARATE_AD_ROI = 0b01  # Separate ROI and Stats plugins
+    WITH_COMBINED_AD_ROI = 0b10  # Unified ROIStats plugin
 
 
 @dataclass
@@ -27,6 +30,9 @@ class DeviceItem:
     user_name: str
     mnemonic: str
     type: DeviceType
+
+    roi_type: typing.Optional[DeviceROIType] = 0
+    roi_count: typing.Optional[int] = 4
 
     extra_mnemonics: typing.Optional[dict[DataSource.DataType, tuple[str]]] = None
 
@@ -102,10 +108,10 @@ EMA_DEVICES = [
     DeviceItem("MVS2", "mvs2", DeviceType.READABLE),
     DeviceItem("MVS3", "mvs3", DeviceType.READABLE),
 
-    DeviceItem("Vortex"           , "xrf", DeviceType.READABLE, __VORTEX_EXTRA_MNEMONICS),  # noqa: E203
-    DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
-    DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE | DeviceType.WITH_SEPARATE_AD_ROI),  # noqa: E203
-    DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE | DeviceType.WITH_COMBINED_AD_ROI, __PILATUS_EXTRA_MNEMONICS),  # noqa: E203
+    DeviceItem("Vortex"           , "xrf", DeviceType.READABLE, extra_mnemonics=__VORTEX_EXTRA_MNEMONICS),  # noqa: E203
+    DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE, DeviceROIType.WITH_SEPARATE_AD_ROI),  # noqa: E203
+    DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE, DeviceROIType.WITH_SEPARATE_AD_ROI),  # noqa: E203
+    DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE, DeviceROIType.WITH_COMBINED_AD_ROI, roi_count=1, extra_mnemonics=__PILATUS_EXTRA_MNEMONICS),  # noqa: E203
 
     DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
 
@@ -150,7 +156,7 @@ class SourcedCheckBox(QCheckBox):
 
 
 class SeparateROIConfigurationWidget(QWidget):
-    def __init__(self, parent_mnemonic: str, parent=None):
+    def __init__(self, parent_mnemonic: str, number_of_rois: int, parent=None):
         super().__init__(parent)
 
         self._mnemonic = parent_mnemonic
@@ -186,7 +192,7 @@ class SeparateROIConfigurationWidget(QWidget):
         layout.addWidget(label("ROI plugin"), 0, 1, 1, 2)
         layout.addWidget(label("Stats plugin"), 0, 3, 1, 2)
 
-        for n in range(1, 5):
+        for n in range(1, number_of_rois + 1):
             row = n
 
             layout.addWidget(QLabel("ROI " + str(n)), row, 0, 1, 1)
@@ -208,12 +214,12 @@ class SeparateROIConfigurationWidget(QWidget):
 
 
 class SeparateROIConfigurationPushButton(QPushButton):
-    def __init__(self, text: str, parent_mnemonic: str, parent=None):
+    def __init__(self, text: str, parent_mnemonic: str, number_of_rois: int, parent=None):
         super().__init__(text, parent)
 
         self.setCheckable(True)
 
-        self._widget = SeparateROIConfigurationWidget(parent_mnemonic)
+        self._widget = SeparateROIConfigurationWidget(parent_mnemonic, number_of_rois)
         self.toggled.connect(self._widget.setVisible)
 
     @property
@@ -222,7 +228,7 @@ class SeparateROIConfigurationPushButton(QPushButton):
 
 
 class CombinedROIConfigurationWidget(QWidget):
-    def __init__(self, parent_mnemonic: str, parent=None):
+    def __init__(self, parent_mnemonic: str, number_of_rois: int, parent=None):
         super().__init__(parent)
 
         self._mnemonic = parent_mnemonic
@@ -249,7 +255,7 @@ class CombinedROIConfigurationWidget(QWidget):
         layout = QGridLayout()
         layout.addWidget(label("ROIStat plugin"), 0, 1, 1, 2)
 
-        for n in range(1, 5):
+        for n in range(1, number_of_rois + 1):
             row = n
 
             layout.addWidget(QLabel("ROI " + str(n)), row, 0, 1, 1)
@@ -267,12 +273,12 @@ class CombinedROIConfigurationWidget(QWidget):
 
 
 class CombinedROIConfigurationPushButton(QPushButton):
-    def __init__(self, text: str, parent_mnemonic: str, parent=None):
+    def __init__(self, text: str, parent_mnemonic: str, number_of_rois: int, parent=None):
         super().__init__(text, parent)
 
         self.setCheckable(True)
 
-        self._widget = CombinedROIConfigurationWidget(parent_mnemonic)
+        self._widget = CombinedROIConfigurationWidget(parent_mnemonic, number_of_rois)
         self.toggled.connect(self._widget.setVisible)
 
     @property
@@ -368,14 +374,14 @@ class DeviceSelectorMainWindow(QMainWindow):
             layout.addWidget(after_checkbox, row, 9, 1, 1)
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 10, 1, 1)
 
-            if item.type & DeviceType.WITH_SEPARATE_AD_ROI:
-                roi_push_button = SeparateROIConfigurationPushButton("ROIs", item.mnemonic)
+            if item.roi_type & DeviceROIType.WITH_SEPARATE_AD_ROI:
+                roi_push_button = SeparateROIConfigurationPushButton("ROIs", item.mnemonic, item.roi_count)
                 roi_push_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                 layout.addWidget(roi_push_button, row, 11, 1, 1)
                 layout.addWidget(roi_push_button.config_widget, row+1, 2, 1, 10)
 
-            if item.type & DeviceType.WITH_COMBINED_AD_ROI:
-                roi_push_button = CombinedROIConfigurationPushButton("ROIs", item.mnemonic)
+            if item.roi_type & DeviceROIType.WITH_COMBINED_AD_ROI:
+                roi_push_button = CombinedROIConfigurationPushButton("ROIs", item.mnemonic, item.roi_count)
                 roi_push_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                 layout.addWidget(roi_push_button, row, 11, 1, 1)
                 layout.addWidget(roi_push_button.config_widget, row+1, 2, 1, 10)
