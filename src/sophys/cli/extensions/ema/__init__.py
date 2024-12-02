@@ -472,6 +472,52 @@ def after_plan_submission_callback(ipython):
     return ipython.run_line_magic("wait_for_idle", "")
 
 
+def sophys_state_query() -> str:
+    import subprocess
+
+    render = []
+
+    autosave_host = get_cli_envvar(ENVVARS.AUTOSAVE_HOST_ENVVAR)
+    autosave_port = get_cli_envvar(ENVVARS.AUTOSAVE_PORT_ENVVAR)
+    redis_host = get_cli_envvar(ENVVARS.REDIS_HOST_ENVVAR)
+    redis_port = get_cli_envvar(ENVVARS.REDIS_PORT_ENVVAR)
+    http_host = get_cli_envvar(ENVVARS.HTTPSERVER_HOST_ENVVAR)
+    http_port = get_cli_envvar(ENVVARS.HTTPSERVER_PORT_ENVVAR)
+    kafka_host = get_cli_envvar(ENVVARS.KAFKA_HOST_ENVVAR)
+    kafka_port = get_cli_envvar(ENVVARS.KAFKA_PORT_ENVVAR)
+
+    # Hosts
+    def ping(addr):
+        command = ["ping", "-c", "1", "-w5", addr]
+        ret_code = subprocess.run(args=command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
+        return "OK" if ret_code == 0 else "TIMEOUT"
+
+    render.append("Hosts:")
+    render.append(f"  Autosave: {ping(autosave_host)} ({autosave_host})")
+    render.append(f"  Redis: {ping(redis_host)} ({redis_host})")
+    render.append(f"  Httpserver: {ping(http_host)} ({http_host})")
+    render.append(f"  Kafka: {ping(kafka_host)} ({kafka_host})")
+
+    render.append("")
+
+    # Ports
+    def port_open(addr, port):
+        command = [f'nmap -p {port} {addr} | grep "{port}" | grep "open"']
+        has_nmap = subprocess.run(args=["nmap -V"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        if not has_nmap:
+            return "'nmap' is not installed on this system."
+        ret_code = subprocess.run(args=command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
+        return "OK" if ret_code == 0 else "TIMEOUT"
+
+    render.append("Ports:")
+    render.append(f"  Autosave: {port_open(autosave_host, autosave_port)} ({autosave_port})")
+    render.append(f"  Redis: {port_open(redis_host, redis_port)} ({redis_port})")
+    render.append(f"  Httpserver: {port_open(http_host, http_port)} ({http_port})")
+    render.append(f"  Kafka: {port_open(kafka_host, kafka_port)} ({kafka_port})")
+
+    return "\n".join(render)
+
+
 def load_ipython_extension(ipython):
     local_mode = get_from_namespace(NamespaceKeys.LOCAL_MODE, False, ipython)
     test_mode = get_from_namespace(NamespaceKeys.TEST_MODE, False, ipython)
@@ -496,6 +542,7 @@ def load_ipython_extension(ipython):
     if not local_mode:
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
+        ipython.magics_manager.registry["HTTPMagics"].additional_state = [sophys_state_query]
 
     if not test_mode:
         add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md", "disable_auto_increment"})
