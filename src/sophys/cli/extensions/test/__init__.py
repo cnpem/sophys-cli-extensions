@@ -1,6 +1,6 @@
 import os
 
-from sophys.cli.core import HTTPSERVER_HOST_ENVVAR, HTTPSERVER_PORT_ENVVAR
+from sophys.cli.core import HTTPSERVER_HOST_ENVVAR, HTTPSERVER_PORT_ENVVAR, get_cli_envvar
 
 from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace, get_from_namespace
 
@@ -34,8 +34,8 @@ def load_ipython_extension(ipython):
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
-        host = os.environ.get(HTTPSERVER_HOST_ENVVAR, "localhost")
-        port = os.environ.get(HTTPSERVER_PORT_ENVVAR, "1")
+        host = get_cli_envvar(HTTPSERVER_HOST_ENVVAR)
+        port = get_cli_envvar(HTTPSERVER_PORT_ENVVAR)
         setup_remote_session_handler(ipython, f"http://{host}:{port}")
     else:
         plans = set(i[0].user_name for i in get_plans("test", PLAN_WHITELIST))
