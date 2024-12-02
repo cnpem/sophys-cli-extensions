@@ -2,7 +2,7 @@
 
 A command-line client for the sophys project group.
 
-This is the SIRUS extensions for sophys-cli-core. It contains custom logic and functionality for particular beamlines.
+This is the SIRIUS extensions for sophys-cli-core. It contains custom logic and functionality for particular beamlines.
 
 ## Installation
 
