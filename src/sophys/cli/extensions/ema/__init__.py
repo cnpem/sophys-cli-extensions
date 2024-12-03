@@ -4,6 +4,8 @@ import os
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
+from bluesky_queueserver_api.comm_base import RequestFailedError
+
 from sophys.cli.core import ENVVARS, get_cli_envvar
 
 from sophys.cli.core.data_source import LocalInMemoryDataSource, RedisDataSource
@@ -11,7 +13,7 @@ from sophys.cli.core.persistent_metadata import PersistentMetadata
 
 from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace, get_color
 
-from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
+from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist, ExceptionHandlerReturnValue
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from sophys.cli.core.magics.plan_magics import PlanMV, PlanReadMany, PlanCount, PlanScan, PlanAdaptiveScan
@@ -472,6 +474,42 @@ def after_plan_submission_callback(ipython):
     return ipython.run_line_magic("wait_for_idle", "")
 
 
+def after_plan_request_failed_callback(exc: RequestFailedError, local_ns) -> ExceptionHandlerReturnValue:
+    print()
+    print("Could not run the provided plan because the server is already running something else.")
+    print("This could be due to either:")
+    print("  - Another user is executing a plan right now;")
+    print("  - The server is stuck in an infinite loop due to some bogus circunstance.")
+    print()
+    print("Restarting the server would solve the latter situation.")
+    print("Checking if a pause is pending...")
+    print()
+
+    handler = get_from_namespace(NamespaceKeys.REMOTE_SESSION_HANDLER, ns=local_ns)
+    manager = handler.get_authorized_manager()
+
+    # TODO: Add error handling to here.
+    res = manager.status()
+    if res["pause_pending"]:
+        print("A pause is pending, so it's likely the second circunstance.")
+        print("We'll destroy the environment and create another one.")
+        print()
+
+        HTTPMagics._reload_environment(manager, True, logging.getLogger("sophys_cli.tools"))
+
+        print()
+        print("Environment recreated. Will retry to run the provided plan.")
+        print()
+
+        return ExceptionHandlerReturnValue.RETRY
+
+    print("A pause is not pending, so it's likely someone else is using the server right now.")
+    print("Use the 'query_state' magic for more information.")
+    print()
+
+    return ExceptionHandlerReturnValue.EXIT_QUIET
+
+
 def sophys_state_query() -> str:
     import subprocess
 
@@ -528,12 +566,14 @@ def load_ipython_extension(ipython):
     if mode_of_op == ModeOfOperation.Remote:
         post_submission_callbacks.append(functools.partial(after_plan_submission_callback, ipython))
 
+    exception_handlers = {RequestFailedError: after_plan_request_failed_callback}
+
     permanent_md_preprocessor = setup_persistent_metadata(ipython)
     whitelisted_plan_md_preprocessors.append(permanent_md_preprocessor)
 
     plan_whitelist = PlanWhitelist(*whitelisted_plan_list, pre_processing_md=whitelisted_plan_md_preprocessors)
 
-    setup_plan_magics(ipython, "ema", plan_whitelist, mode_of_op, post_submission_callbacks)
+    setup_plan_magics(ipython, "ema", plan_whitelist, mode_of_op, post_submission_callbacks, exception_handlers)
     ipython.register_magics(MiscMagics)
     ipython.register_magics(UtilityMagics)
     ipython.register_magics(KBLMagics)
