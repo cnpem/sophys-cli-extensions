@@ -104,20 +104,20 @@ def do_spec_files(*devices, md):
     return md
 
 
-class Plan1DScan(PlanCLI):
+class PlanNDScan(PlanCLI):
     absolute: bool
 
     def _usage(self):
-        return "%(prog)s motor start stop num [exposure_time] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+        return "%(prog)s motor start stop [motor start stop ...] num [exposure_time] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
 
     def create_parser(self):
         _a = super().create_parser()
 
-        _a.add_argument("motor", nargs=1, type=str, help="Mnemonic of a motor to move.")
-        _a.add_argument("start", type=float, help="Start position, in the motor's EGU.")
-        _a.add_argument("stop", type=float, help="End position, in the motor's EGU.")
-        _a.add_argument("num", type=int, help="Number of points between the start and end positions.")
+        _a.add_argument("args", nargs='+', type=str, help="Motor informations, in order (mnemonic start_position end_position)")
+        # NOTE: These two are not used in parsing, they're only here for documentation. Their values are taken from args instead.
+        _a.add_argument("num", type=int, nargs='?', default=None, help="Number of points between the start and end positions.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
+
         _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
         _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
@@ -125,13 +125,19 @@ class Plan1DScan(PlanCLI):
 
     def _create_plan(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
-        motor = self.get_real_devices_if_needed(parsed_namespace.motor, local_ns)[0]
-        start = parsed_namespace.start
-        stop = parsed_namespace.stop
-        num = parsed_namespace.num
-        exp_time = parsed_namespace.exposure_time
 
-        md = self.parse_md(*parsed_namespace.detectors, parsed_namespace.motor[0], ns=parsed_namespace)
+        nargs = len(parsed_namespace.args)
+        assert (nargs >= 4) or (nargs % 3 == 0), "Not enough arguments have been passed."
+        if nargs % 3 == 1:  # motors + num
+            _args = parsed_namespace.args
+            exp_time = None
+        else:  # motors + num + exp time
+            _args = parsed_namespace.args[:-1]
+            exp_time = float(parsed_namespace.args[-1])
+
+        args, num, motors = self.parse_varargs(_args, local_ns, with_final_num=True)
+
+        md = self.parse_md(*parsed_namespace.detectors, *motors, ns=parsed_namespace)
 
         template = parsed_namespace.hdf_file_name or "ascan_%H_%M_%S"
         from datetime import datetime
@@ -145,9 +151,9 @@ class Plan1DScan(PlanCLI):
             md["metadata_save_file_location"] = hdf_file_path
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, motor, start, stop, num, exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
 
 
 class PlanGridScan(PlanCLI):
@@ -330,7 +336,7 @@ class PlanMotorOrigin(PlanCLI):
             return BPlan(self._plan_name, motor, position, md=md)
 
 
-class PlanAbs1DScan(Plan1DScan):
+class PlanAbsNDScan(PlanNDScan):
     absolute = True
 
     def _description(self):
@@ -357,10 +363,20 @@ ascan wst 0.0 0.4 5 0.1
     |-----x------------x------------x------------x------------x------|
          0.0          0.1          0.2          0.3          0.4
                            wst position (abs)
+
+ascan ms2r 0.488 0.49 wst 0.0 0.4 5 0.1
+    Make a 2D scan over 5 points on the 'ms2r' and 'wst' motors, in absolute coordinates,
+    with exposure time per-point equal to 0.1 seconds, and moving at the same time:
+
+    |                     ms2r position (abs)                        |
+    |  0.4880       0.4882       0.4884       0.4886       0.4888    |
+    |-----x------------x------------x------------x------------x------|
+    |    0.0          0.1          0.2          0.3          0.4     |
+    |                      wst position (abs)                        |
 """
 
 
-class PlanRel1DScan(Plan1DScan):
+class PlanRelNDScan(PlanNDScan):
     absolute = False
 
     def _description(self):
@@ -387,6 +403,16 @@ rscan wst 0.0 0.4 5 0.1
     |-----x------------x------------x------------x------------x------|
          0.0          0.1          0.2          0.3          0.4
                             wst position (rel)
+
+rscan ms2r 0.488 0.49 wst 0.0 0.4 5 0.1
+    Make a 2D scan over 5 points on the 'ms2r' and 'wst' motors, relative to the current position,
+    with exposure time per-point equal to 0.1 seconds, and moving at the same time:
+
+    |                     ms2r position (rel)                        |
+    |  0.4880       0.4882       0.4884       0.4886       0.4888    |
+    |-----x------------x------------x------------x------------x------|
+    |    0.0          0.1          0.2          0.3          0.4     |
+    |                      wst position (rel)                        |
 """
 
 
@@ -481,8 +507,8 @@ whitelisted_plan_list = [
     PlanInformation("count", "count", PlanCount),
     PlanInformation("grid_scan", "grid_scan", PlanAbsGridScan),
     PlanInformation("grid_scan", "rel_grid_scan", PlanRelGridScan),
-    PlanInformation("scan1d", "ascan", PlanAbs1DScan),
-    PlanInformation("scan1d", "rscan", PlanRel1DScan),
+    PlanInformation("scanNd", "ascan", PlanAbsNDScan),
+    PlanInformation("scanNd", "rscan", PlanRelNDScan),
     PlanInformation("motor_set_origin", "mset", PlanMotorOrigin),
     PlanInformation("grid_scan_with_jitter", "jittermap", PlanGridScanWithJitter),
 ]
