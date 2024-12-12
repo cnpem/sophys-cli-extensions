@@ -270,7 +270,7 @@ def load_ipython_extension(ipython):
     if not local_mode:
         host = get_cli_envvar(ENVVARS.HTTPSERVER_HOST_ENVVAR)
         port = get_cli_envvar(ENVVARS.HTTPSERVER_PORT_ENVVAR)
-        setup_remote_session_handler(ipython, f"http://{host}:{port}")
+        setup_remote_session_handler(ipython, f"http://{host}:{port}", disable_authentication=True)
     else:
         plans = set(i[0].user_name for i in get_plans("ema", plan_whitelist))
         add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
