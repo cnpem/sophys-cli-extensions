@@ -1,3 +1,4 @@
+import argparse
 import functools
 import os
 
@@ -12,6 +13,9 @@ class BaseScanCLI(PlanCLI):
         _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
         _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
+        _a.add_argument("--max", action="store_true", help="Go to the point of the scan with maximum value at the end.")
+        _a.add_argument("--after_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
+
         return _a
 
     def parse_hdf_args(self, parsed_namespace, template: str | None = None):
@@ -25,6 +29,17 @@ class BaseScanCLI(PlanCLI):
             hdf_file_path = os.getcwd()
 
         return hdf_file_name, hdf_file_path
+
+    def get_after_plan_behavior_argument(self, parsed_namespace):
+        if parsed_namespace.max:
+            return "max"
+        return "return"
+
+    def get_after_plan_target_argument(self, parsed_namespace, local_ns):
+        if not parsed_namespace.after_plan_target:
+            if len(parsed_namespace.detectors) == 1:
+                return parsed_namespace.detectors[0]
+        return parsed_namespace.after_plan_target
 
 
 class PlanNDScan(BaseScanCLI):
@@ -64,10 +79,13 @@ class PlanNDScan(BaseScanCLI):
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
 
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
 
 
 class PlanGridScan(BaseScanCLI):
@@ -116,10 +134,13 @@ class PlanGridScan(BaseScanCLI):
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
 
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
+            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolut, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_targete)
 
 
 class PlanGridScanWithJitter(BaseScanCLI):
@@ -204,10 +225,13 @@ jittermap ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
 
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
 
 
 class PlanMotorOrigin(PlanCLI):
