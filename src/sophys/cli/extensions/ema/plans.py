@@ -5,7 +5,29 @@ from sophys.cli.core.magics.plan_magics import ModeOfOperation
 from sophys.cli.core.magics.plan_magics import PlanCLI, BPlan
 
 
-class PlanNDScan(PlanCLI):
+class BaseScanCLI(PlanCLI):
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
+        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
+
+        return _a
+
+    def parse_hdf_args(self, parsed_namespace, template: str | None = None):
+        template = parsed_namespace.hdf_file_name or template
+
+        from datetime import datetime
+        hdf_file_name = datetime.now().strftime(template)
+
+        hdf_file_path = parsed_namespace.hdf_file_path
+        if hdf_file_path is None:
+            hdf_file_path = os.getcwd()
+
+        return hdf_file_name, hdf_file_path
+
+
+class PlanNDScan(BaseScanCLI):
     absolute: bool
 
     def _usage(self):
@@ -18,9 +40,6 @@ class PlanNDScan(PlanCLI):
         # NOTE: These two are not used in parsing, they're only here for documentation. Their values are taken from args instead.
         _a.add_argument("num", type=int, nargs='?', default=None, help="Number of points between the start and end positions.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
-
-        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
-        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
         return _a
 
@@ -40,13 +59,7 @@ class PlanNDScan(PlanCLI):
 
         md = self.parse_md(*parsed_namespace.detectors, *motors, ns=parsed_namespace)
 
-        template = parsed_namespace.hdf_file_name or "ascan_%H_%M_%S"
-        from datetime import datetime
-        hdf_file_name = datetime.now().strftime(template)
-
-        hdf_file_path = parsed_namespace.hdf_file_path
-        if hdf_file_path is None:
-            hdf_file_path = os.getcwd()
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "ascan_%H_%M_%S")
 
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
@@ -57,7 +70,7 @@ class PlanNDScan(PlanCLI):
             return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
 
 
-class PlanGridScan(PlanCLI):
+class PlanGridScan(BaseScanCLI):
     absolute: bool
 
     def _usage(self):
@@ -76,8 +89,6 @@ class PlanGridScan(PlanCLI):
         _a.add_argument("second_num", type=int, help="Number of points between the start and end positions of the second motor.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
         _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
-        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
-        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
         return _a
 
@@ -100,13 +111,7 @@ class PlanGridScan(PlanCLI):
 
         md = self.parse_md(*parsed_namespace.detectors, *motor_names, ns=parsed_namespace)
 
-        template = parsed_namespace.hdf_file_name or "gridscan_%H_%M_%S"
-        from datetime import datetime
-        hdf_file_name = datetime.now().strftime(template)
-
-        hdf_file_path = parsed_namespace.hdf_file_path
-        if hdf_file_path is None:
-            hdf_file_path = os.getcwd()
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "gridscan_%H_%M_%S")
 
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
@@ -117,7 +122,7 @@ class PlanGridScan(PlanCLI):
             return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute)
 
 
-class PlanGridScanWithJitter(PlanCLI):
+class PlanGridScanWithJitter(BaseScanCLI):
     def _usage(self):
         return "%(prog)s motor start stop num motor start stop num [motor start stop num ...] [exposure_time] [-s/--snake] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
 
@@ -172,8 +177,6 @@ jittermap ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
         _a.add_argument("second_num", type=int, help="Number of points between the start and end positions of the second motor.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
         _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
-        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
-        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
         return _a
 
@@ -196,13 +199,7 @@ jittermap ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
 
         md = self.parse_md(*parsed_namespace.detectors, *motor_names, ns=parsed_namespace)
 
-        template = parsed_namespace.hdf_file_name or "jittermap_%H_%M_%S"
-        from datetime import datetime
-        hdf_file_name = datetime.now().strftime(template)
-
-        hdf_file_path = parsed_namespace.hdf_file_path
-        if hdf_file_path is None:
-            hdf_file_path = os.getcwd()
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "jittermap_%H_%M_%S")
 
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
