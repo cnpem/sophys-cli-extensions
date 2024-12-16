@@ -17,7 +17,7 @@ from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagic
 
 from sophys.cli.core.magics.plan_magics import PlanMV, PlanReadMany, PlanCount
 
-from .device_selector import spawnDeviceSelector
+from .eds.device_selector import spawnDeviceSelector
 from .input_processor import input_processor
 from .ipython_config import setup_prompt
 from .plans import PlanAbsNDScan, PlanRelNDScan, PlanAbsGridScan, PlanRelGridScan, PlanGridScanWithJitter, PlanMotorOrigin

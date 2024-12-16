@@ -7,8 +7,8 @@ import typing
 from dataclasses import dataclass
 from enum import IntFlag
 
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QCheckBox, QSpacerItem, QWidget, QPushButton
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QCheckBox, QComboBox, QSpacerItem, QWidget, QPushButton
 
 from sophys.cli.core.data_source import DataSource
 from sophys.cli.core.magics import NamespaceKeys, get_from_namespace
