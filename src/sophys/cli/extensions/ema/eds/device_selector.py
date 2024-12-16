@@ -162,8 +162,10 @@ class DeviceSelectorMainWindow(QMainWindow):
 
         self.main_layout.addWidget(device_type_tab_widget)
 
-        main_counter = self._base_ui.main_counter_area.layout()
-        self.populateMainCounter(main_counter)
+        main_counter = self._base_ui.main_counter_area
+        self.populateMainCounter(main_counter.layout())
+
+        self.main_layout.addWidget(main_counter)
 
         main_frame = QFrame()
         main_frame.setStyleSheet(".QFrame { margin: 2px; border: 2px solid #000000; border-radius: 4px; }")
