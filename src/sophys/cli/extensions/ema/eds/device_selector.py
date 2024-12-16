@@ -1,17 +1,17 @@
-import functools
-import json
-import logging
-import subprocess
 import typing
 
 from dataclasses import dataclass
 from enum import IntFlag
+from pathlib import Path
 
+from qtpy.uic import loadUi
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QCheckBox, QSpacerItem, QWidget, QPushButton
+from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QSpacerItem, QWidget
 
 from sophys.cli.core.data_source import DataSource
 from sophys.cli.core.magics import NamespaceKeys, get_from_namespace
+
+from .widgets import CombinedROIConfigurationPushButton, SeparateROIConfigurationPushButton, SourcedCheckBox, SourcedComboBox, label
 
 
 class DeviceType(IntFlag):
@@ -129,163 +129,6 @@ EMA_DEVICES = [
 ]
 
 
-def label(text, alignment=Qt.AlignHCenter):
-    _l = QLabel(text)
-    _l.setAlignment(alignment)
-    return _l
-
-
-class SourcedCheckBox(QCheckBox):
-    def __init__(self, data_source: DataSource, type: DataSource.DataType, keys: tuple[str], parent=None):
-        super().__init__(parent)
-
-        self._data_source = data_source
-        self._data_type = type
-        self._keys = keys
-
-        if any(key in self._data_source.get(type) for key in self._keys):
-            self.setChecked(True)
-
-        self.toggled.connect(self.onToggle)
-
-    def onToggle(self, got_checked: bool):
-        if got_checked:
-            self._data_source.add(self._data_type, *self._keys)
-        else:
-            self._data_source.remove(self._data_type, *self._keys)
-
-
-class SeparateROIConfigurationWidget(QWidget):
-    def __init__(self, parent_mnemonic: str, number_of_rois: int, parent=None):
-        super().__init__(parent)
-
-        self._mnemonic = parent_mnemonic
-
-        self.setVisible(False)
-
-        try:
-            from suitscase.widgets.area_detector.plugin_list import (
-                getSimplifiedPluginConfigurationFile,
-                getSimplifiedExtraPluginConfigurationMacros,
-            )
-        except ImportError:
-            logging.error("Failed to import suitscase, which is required for this option.")
-            return
-
-        from pathlib import Path
-        base_command = [str(Path(__file__).parent / "open_plugin_page.sh")]
-
-        roi_file_path = getSimplifiedPluginConfigurationFile("NDPluginROI")
-        roi_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginROI")
-        stats_file_path = getSimplifiedPluginConfigurationFile("NDPluginStats")
-        stats_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginStats")
-
-        def roi_btn_callback(n):
-            macros = {"P": self.parent_prefix, "R": f"ROI{n}", **roi_macros}
-            subprocess.Popen([*base_command, "-m", json.dumps(macros), roi_file_path])
-
-        def stats_btn_callback(n):
-            macros = {"P": self.parent_prefix, "R": f"Stats{n}", **stats_macros}
-            subprocess.Popen([*base_command, "-m", json.dumps(macros), stats_file_path])
-
-        layout = QGridLayout()
-        layout.addWidget(label("ROI plugin"), 0, 1, 1, 2)
-        layout.addWidget(label("Stats plugin"), 0, 3, 1, 2)
-
-        for n in range(1, number_of_rois + 1):
-            row = n
-
-            layout.addWidget(QLabel("ROI " + str(n)), row, 0, 1, 1)
-
-            roi_btn = QPushButton("Configuration")
-            roi_btn.clicked.connect(functools.partial(roi_btn_callback, n))
-            layout.addWidget(roi_btn, row, 1, 1, 2)
-
-            stats_btn = QPushButton("Configuration")
-            stats_btn.clicked.connect(functools.partial(stats_btn_callback, n))
-            layout.addWidget(stats_btn, row, 3, 1, 2)
-
-        self.setLayout(layout)
-
-    @functools.cached_property
-    def parent_prefix(self):
-        from sophys.ema.utils import mnemonic_to_pv_name
-        return mnemonic_to_pv_name(self._mnemonic)
-
-
-class SeparateROIConfigurationPushButton(QPushButton):
-    def __init__(self, text: str, parent_mnemonic: str, number_of_rois: int, parent=None):
-        super().__init__(text, parent)
-
-        self.setCheckable(True)
-
-        self._widget = SeparateROIConfigurationWidget(parent_mnemonic, number_of_rois)
-        self.toggled.connect(self._widget.setVisible)
-
-    @property
-    def config_widget(self):
-        return self._widget
-
-
-class CombinedROIConfigurationWidget(QWidget):
-    def __init__(self, parent_mnemonic: str, number_of_rois: int, parent=None):
-        super().__init__(parent)
-
-        self._mnemonic = parent_mnemonic
-
-        self.setVisible(False)
-
-        try:
-            from suitscase.widgets.area_detector.plugin_list import (
-                getSimplifiedPluginConfigurationFile,
-                getSimplifiedExtraPluginConfigurationMacros,
-            )
-        except ImportError:
-            logging.error("Failed to import suitscase, which is required for this option.")
-            return
-
-        base_command = "pydm --hide-nav-bar --hide-menu-bar --hide-status-bar".split(' ')
-        roistat_file_path = getSimplifiedPluginConfigurationFile("NDPluginROIStat")
-        roistat_macros = getSimplifiedExtraPluginConfigurationMacros("NDPluginROIStat")
-
-        def roistat_btn_callback(n):
-            macros = {"P": self.parent_prefix, "R": f"ROIStat{n}", **roistat_macros}
-            subprocess.Popen([*base_command, "-m", json.dumps(macros), roistat_file_path])
-
-        layout = QGridLayout()
-        layout.addWidget(label("ROIStat plugin"), 0, 1, 1, 2)
-
-        for n in range(1, number_of_rois + 1):
-            row = n
-
-            layout.addWidget(QLabel("ROI " + str(n)), row, 0, 1, 1)
-
-            roistat_btn = QPushButton("Configuration")
-            roistat_btn.clicked.connect(functools.partial(roistat_btn_callback, n))
-            layout.addWidget(roistat_btn, row, 1, 1, 2)
-
-        self.setLayout(layout)
-
-    @functools.cached_property
-    def parent_prefix(self):
-        from sophys.ema.utils import mnemonic_to_pv_name
-        return mnemonic_to_pv_name(self._mnemonic)
-
-
-class CombinedROIConfigurationPushButton(QPushButton):
-    def __init__(self, text: str, parent_mnemonic: str, number_of_rois: int, parent=None):
-        super().__init__(text, parent)
-
-        self.setCheckable(True)
-
-        self._widget = CombinedROIConfigurationWidget(parent_mnemonic, number_of_rois)
-        self.toggled.connect(self._widget.setVisible)
-
-    @property
-    def config_widget(self):
-        return self._widget
-
-
 class DeviceSelectorMainWindow(QMainWindow):
     def __init__(self, data_source: DataSource, in_test_mode: bool = False, parent=None):
         super().__init__(parent)
@@ -302,31 +145,27 @@ class DeviceSelectorMainWindow(QMainWindow):
         main_title.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(main_title)
 
-        readable_page = QWidget()
-        settable_page = QWidget()
-        simulated_page = None
+        self._base_ui = loadUi(str(Path(__file__).parent / "base.ui"))
+        device_type_tab_widget: QTabWidget = self._base_ui.device_type_tab_widget
 
-        readable_form = QGridLayout()
-        settable_form = QGridLayout()
+        readable_form = self._base_ui.counters_area.layout()
+        settable_form = self._base_ui.generic_area.layout()
         simulated_form = None
 
         if in_test_mode:
             simulated_page = QWidget()
+            device_type_tab_widget.addTab(simulated_page, "Simulated")
             simulated_form = QGridLayout()
+            simulated_page.setLayout(simulated_form)
 
         self.populateDevices(readable_form, settable_form, simulated_form)
 
-        readable_page.setLayout(readable_form)
-        settable_page.setLayout(settable_form)
-        if simulated_page is not None:
-            simulated_page.setLayout(simulated_form)
-
-        device_type_tab_widget = QTabWidget()
-        device_type_tab_widget.addTab(readable_page, "Detectors")
-        device_type_tab_widget.addTab(settable_page, "Motors")
-        if simulated_page is not None:
-            device_type_tab_widget.addTab(simulated_page, "Simulated")
         self.main_layout.addWidget(device_type_tab_widget)
+
+        main_counter = self._base_ui.main_counter_area
+        self.populateMainCounter(main_counter.layout())
+
+        self.main_layout.addWidget(main_counter)
 
         main_frame = QFrame()
         main_frame.setStyleSheet(".QFrame { margin: 2px; border: 2px solid #000000; border-radius: 4px; }")
@@ -334,6 +173,15 @@ class DeviceSelectorMainWindow(QMainWindow):
         main_frame.setLayout(self.main_layout)
 
         self.setCentralWidget(main_frame)
+
+    def populateMainCounter(self, main_counter_form: QHBoxLayout):
+        lbl = QLabel("Main counter")
+        lbl.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        lbl.setToolTip("The main counter to use. This is primarily used as the target of calculations at the end of some plans.")
+        main_counter_form.addWidget(lbl)
+
+        combo_box = SourcedComboBox(self._data_source, in_type=DataSource.DataType.DETECTORS, out_type=DataSource.DataType.MAIN_DETECTOR)
+        main_counter_form.addWidget(combo_box)
 
     def populateDevices(self, readable_form: QGridLayout, settable_form: QGridLayout, simulated_form: typing.Optional[QGridLayout] = None):
         for form in (readable_form, settable_form, simulated_form):
