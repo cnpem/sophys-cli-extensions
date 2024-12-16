@@ -41,6 +41,18 @@ def add_metadata(line: str, source: DataSource):
     return f"{line.strip()} --md {md.strip()}"
 
 
+def add_plan_target(line: str, source: DataSource):
+    """
+    Insert '--after_plan_target' directive into 'line', with the target taken from 'source'.
+    """
+
+    targets = source.get(DataSource.DataType.MAIN_DETECTOR)
+    if len(targets) == 0:
+        return line
+    target = targets[0].strip()
+    return f"{line.strip()} --after_plan_target {target} --md MAIN_COUNTER={target}"
+
+
 def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
@@ -61,6 +73,7 @@ def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], dat
     processors = [
         functools.partial(add_detectors, source=data_source, plan_information=plan_information),
         functools.partial(add_metadata, source=data_source),
+        functools.partial(add_plan_target, source=data_source),
     ]
 
     new_lines = []
