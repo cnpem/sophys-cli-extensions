@@ -79,6 +79,11 @@ class SourcedComboBox(QComboBox):
     def onSelectedKeyChanged(self, new_key: str):
         if self._current_key is not None:
             self._data_source.remove(self._out_data_type, self._current_key)
+
+        if new_key == "No selected device.":
+            self._current_key = None
+            return
+
         self._data_source.add(self._out_data_type, new_key)
         self._current_key = new_key
 
