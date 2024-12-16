@@ -2,7 +2,9 @@ import typing
 
 from dataclasses import dataclass
 from enum import IntFlag
+from pathlib import Path
 
+from qtpy.uic import loadUi
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QSpacerItem, QWidget
 
@@ -143,30 +145,21 @@ class DeviceSelectorMainWindow(QMainWindow):
         main_title.setAlignment(Qt.AlignHCenter)
         self.main_layout.addWidget(main_title)
 
-        readable_page = QWidget()
-        settable_page = QWidget()
-        simulated_page = None
+        self._base_ui = loadUi(str(Path(__file__).parent / "base.ui"))
+        device_type_tab_widget: QTabWidget = self._base_ui.device_type_tab_widget
 
-        readable_form = QGridLayout()
-        settable_form = QGridLayout()
+        readable_form = self._base_ui.counters_area.layout()
+        settable_form = self._base_ui.generic_area.layout()
         simulated_form = None
 
         if in_test_mode:
             simulated_page = QWidget()
+            device_type_tab_widget.addTab(simulated_page, "Simulated")
             simulated_form = QGridLayout()
+            simulated_page.setLayout(simulated_form)
 
         self.populateDevices(readable_form, settable_form, simulated_form)
 
-        readable_page.setLayout(readable_form)
-        settable_page.setLayout(settable_form)
-        if simulated_page is not None:
-            simulated_page.setLayout(simulated_form)
-
-        device_type_tab_widget = QTabWidget()
-        device_type_tab_widget.addTab(readable_page, "Detectors")
-        device_type_tab_widget.addTab(settable_page, "Motors")
-        if simulated_page is not None:
-            device_type_tab_widget.addTab(simulated_page, "Simulated")
         self.main_layout.addWidget(device_type_tab_widget)
 
         main_frame = QFrame()
