@@ -140,6 +140,10 @@ def after_plan_submission_callback(ipython):
 
 
 def after_plan_request_failed_callback(exc: RequestFailedError, local_ns) -> ExceptionHandlerReturnValue:
+    if "Plan validation failed" in exc.response["msg"]:
+        print("Could not run the provided plan because the sent parameters do not work with the plan:")
+        print(exc.response["msg"])
+        return ExceptionHandlerReturnValue.EXIT_QUIET
     print()
     print("Could not run the provided plan because the server is already running something else.")
     print("This could be due to either:")
