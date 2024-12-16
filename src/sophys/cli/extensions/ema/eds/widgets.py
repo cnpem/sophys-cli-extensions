@@ -3,8 +3,10 @@ import json
 import logging
 import subprocess
 
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QLabel, QGridLayout, QCheckBox, QWidget, QPushButton
+from natsort import natsorted
+
+from qtpy.QtCore import Qt, QTimer
+from qtpy.QtWidgets import QLabel, QGridLayout, QCheckBox, QComboBox, QWidget, QPushButton
 
 from sophys.cli.core.data_source import DataSource
 
@@ -33,6 +35,46 @@ class SourcedCheckBox(QCheckBox):
             self._data_source.add(self._data_type, *self._keys)
         else:
             self._data_source.remove(self._data_type, *self._keys)
+
+
+class SourcedComboBox(QComboBox):
+    def __init__(self, data_source: DataSource, in_type: DataSource.DataType, out_type: DataSource.DataType, parent=None):
+        super().__init__(parent)
+
+        self._data_source = data_source
+        self._in_data_type = in_type
+        self._out_data_type = out_type
+
+        self._current_key = data_source.get(out_type)
+        if len(self._current_key) == 0:
+            self._current_key = None
+        else:
+            self._current_key = self._current_key[0]
+
+        self.currentTextChanged.connect(self.onSelectedKeyChanged)
+
+        self._timer = QTimer(self)
+        self._timer.setInterval(2_000)
+        self._timer.setSingleShot(False)
+        self._timer.timeout.connect(self.updateOptions)
+        self._timer.start()
+
+        self.updateOptions()
+
+    def updateOptions(self):
+        new_opts = natsorted(list(self._data_source.get(self._in_data_type)))
+        new_opts.insert(0, "No selected device.")
+
+        self.blockSignals(True)
+        self.clear()
+        self.addItems(new_opts)
+        self.setCurrentText(self._current_key)
+        self.blockSignals(False)
+
+    def onSelectedKeyChanged(self, new_key: str):
+        self._data_source.remove(self._out_data_type, self._current_key)
+        self._data_source.add(self._out_data_type, new_key)
+        self._current_key = new_key
 
 
 class SeparateROIConfigurationWidget(QWidget):

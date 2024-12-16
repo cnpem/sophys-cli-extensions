@@ -6,12 +6,12 @@ from pathlib import Path
 
 from qtpy.uic import loadUi
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QSpacerItem, QWidget
+from qtpy.QtWidgets import QMainWindow, QApplication, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy, QTabWidget, QGridLayout, QSpacerItem, QWidget
 
 from sophys.cli.core.data_source import DataSource
 from sophys.cli.core.magics import NamespaceKeys, get_from_namespace
 
-from .widgets import CombinedROIConfigurationPushButton, SeparateROIConfigurationPushButton, SourcedCheckBox, label
+from .widgets import CombinedROIConfigurationPushButton, SeparateROIConfigurationPushButton, SourcedCheckBox, SourcedComboBox, label
 
 
 class DeviceType(IntFlag):
@@ -162,12 +162,24 @@ class DeviceSelectorMainWindow(QMainWindow):
 
         self.main_layout.addWidget(device_type_tab_widget)
 
+        main_counter = self._base_ui.main_counter_area.layout()
+        self.populateMainCounter(main_counter)
+
         main_frame = QFrame()
         main_frame.setStyleSheet(".QFrame { margin: 2px; border: 2px solid #000000; border-radius: 4px; }")
         main_frame.setFrameShape(QFrame.Shape.Box)
         main_frame.setLayout(self.main_layout)
 
         self.setCentralWidget(main_frame)
+
+    def populateMainCounter(self, main_counter_form: QHBoxLayout):
+        lbl = QLabel("Main counter")
+        lbl.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        lbl.setToolTip("The main counter to use. This is primarily used as the target of calculations at the end of some plans.")
+        main_counter_form.addWidget(lbl)
+
+        combo_box = SourcedComboBox(self._data_source, in_type=DataSource.DataType.DETECTORS, out_type=DataSource.DataType.MAIN_DETECTOR)
+        main_counter_form.addWidget(combo_box)
 
     def populateDevices(self, readable_form: QGridLayout, settable_form: QGridLayout, simulated_form: typing.Optional[QGridLayout] = None):
         for form in (readable_form, settable_form, simulated_form):

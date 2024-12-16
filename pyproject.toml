@@ -27,7 +27,8 @@ dev = [
 ema = [
   "redis",
   "qtpy",
-  "sophys-ema"
+  "sophys-ema",
+  "natsort==8.4.0"
 ]
 all = [
   "sophys-cli-extensions[dev,ema]"
