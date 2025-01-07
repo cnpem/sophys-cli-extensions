@@ -73,7 +73,8 @@ class SourcedComboBox(QComboBox):
         self.blockSignals(False)
 
         if self.currentText() != self._current_key:
-            self._data_source.remove(self._out_data_type, self._current_key)
+            if self._current_key is not None:
+                self._data_source.remove(self._out_data_type, self._current_key)
             self._current_key = None
 
     def onSelectedKeyChanged(self, new_key: str):
