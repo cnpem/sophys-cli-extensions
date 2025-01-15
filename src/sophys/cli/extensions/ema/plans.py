@@ -528,3 +528,36 @@ rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
     ms2l position (rel)        ms2r position (rel)
 
 """
+
+
+class PlanEScan(BaseScanCLI):
+    def _usage(self):
+        return "%(prog)s [-e start stop step] [-k start stop step] -e0 initial_energy"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("-e", nargs=3, type=float, action="append", help="Specify an energy range (in eV), with a step size (in eV).")
+        _a.add_argument("-k", nargs=3, type=float, action="append", help="Specify a K-space range (start stop step_size).")
+
+        _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in eV.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        energy_ranges = parsed_namespace.e
+        if energy_ranges is None:
+            energy_ranges = []
+        k_ranges = parsed_namespace.k
+        if k_ranges is None:
+            k_ranges = []
+
+        initial_energy = parsed_namespace.initial_energy
+
+        # FIXME: Add IVU / DCM mnemonics to here.
+        md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, energy_ranges, k_ranges, initial_energy=initial_energy, md=md)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, energy_ranges, k_ranges, initial_energy=initial_energy, md=md)
