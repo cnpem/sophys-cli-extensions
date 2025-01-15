@@ -2,7 +2,7 @@
 
 A command-line client for the sophys project group.
 
-This is the SIRIUS extensions for sophys-cli-core. It contains custom logic and functionality for particular beamlines.
+This is the SIRIUS extensions for [sophys-cli-core](https://github.com/cnpem/sophys-cli-core). It contains custom logic and functionality for particular beamlines.
 
 ## Installation
 
@@ -26,6 +26,6 @@ With that, you'll have access to the `sophys-cli` command in the environment you
 
 ## Usage and development
 
-For usage and development information, refer to the `sophys-cli-core` documentation.
+For usage and development information, refer to the [`sophys-cli-core`](https://github.com/cnpem/sophys-cli-core?tab=readme-ov-file#usage) documentation.
 
-These extensions make use of environment variables to configure host and port variables for connection with httpserver and redis. These environment variable names are defined in `sophys-cli-core`, under their root `__init__.py`.
+These extensions make use of environment variables to configure host and port variables for connection with httpserver and redis. These environment variable names are defined in `sophys-cli-core`, under their root [`__init__.py`](https://github.com/cnpem/sophys-cli-core/blob/main/src/sophys/cli/core/__init__.py).
