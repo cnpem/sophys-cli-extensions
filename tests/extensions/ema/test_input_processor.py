@@ -58,8 +58,8 @@ def test_add_metadata(sample_line, expected, local_data_source):
 
 @pytest.mark.parametrize(
     "sample_lines,expected", [
-        (["scan -m -1 1 --num 10"], ["scan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
-        (["scan -mvs1 -1 1 10 0.1"], ["scan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
         (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"])
     ])
