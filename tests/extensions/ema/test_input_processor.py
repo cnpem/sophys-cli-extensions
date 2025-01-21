@@ -27,6 +27,7 @@ def test_local_data_source_get(local_data_source):
     "sample_line,expected", [
         ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3"),
+        ("%scan -mvs1 -1 1 10 0.1", "%scan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3"),
         ("super_scan whatever whatever", "super_scan whatever whatever -d abc1 abc2 abc3"),
     ])
 def test_add_detectors(sample_line, expected, local_data_source):
@@ -38,9 +39,11 @@ def test_add_detectors(sample_line, expected, local_data_source):
         ("scan -m -1 1 --num 10", PlanInformation("scan", "scan", None), "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("scan -m -1 1 --num 10", PlanInformation("scan", "scan", None, has_detectors=True), "scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("scan -m -1 1 --num 10", PlanInformation("scan", "scan", None, has_detectors=False), "scan -m -1 1 --num 10"),
+        ("%scan -m -1 1 --num 10", PlanInformation("scan", "scan", None, has_detectors=False), "%scan -m -1 1 --num 10"),
         ("super_scan -m -1 1 --num 10", PlanInformation("super_scan", "scan", None), "super_scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("super_scan -m -1 1 --num 10", PlanInformation("super_scan", "scan", None, has_detectors=True), "super_scan -m -1 1 --num 10 -d abc1 abc2 abc3"),
         ("super_scan -m -1 1 --num 10", PlanInformation("super_scan", "scan", None, has_detectors=False), "super_scan -m -1 1 --num 10"),
+        ("%super_scan -m -1 1 --num 10", PlanInformation("super_scan", "scan", None, has_detectors=False), "%super_scan -m -1 1 --num 10"),
     ])
 def test_add_detectors_with_plan_information(sample_line, plan_information, expected, local_data_source):
     assert (ret := add_detectors(sample_line, local_data_source, plan_information=plan_information)) == expected, ret
@@ -50,6 +53,7 @@ def test_add_detectors_with_plan_information(sample_line, plan_information, expe
     "sample_line,expected", [
         ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
         ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
+        ("%scan -mvs1 -1 1 10 0.1", "%scan -mvs1 -1 1 10 0.1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
         ("super_scan whatever whatever", "super_scan whatever whatever --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"),
     ])
 def test_add_metadata(sample_line, expected, local_data_source):
@@ -61,7 +65,8 @@ def test_add_metadata(sample_line, expected, local_data_source):
         (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
-        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"])
+        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["%mov xyz1 -1 xyz2 1"], ["%mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
     ])
 def test_input_processor(sample_lines, expected, local_data_source):
     assert (ret := input_processor(sample_lines, whitelisted_plan_list, local_data_source)) == expected, ret
