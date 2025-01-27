@@ -113,6 +113,9 @@ EMA_DEVICES = [
     DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE, DeviceROIType.WITH_SEPARATE_AD_ROI),  # noqa: E203
     DeviceItem("Pilatus 300K"     , "ad4", DeviceType.READABLE, DeviceROIType.WITH_COMBINED_AD_ROI, roi_count=1, extra_mnemonics=__PILATUS_EXTRA_MNEMONICS),  # noqa: E203
 
+    DeviceItem("Interferometer - X", "ifmx", DeviceType.SETTABLE),
+    DeviceItem("Interferometer - Z", "ifmz", DeviceType.SETTABLE),
+
     DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
 
     DeviceItem("Motor", "sim_motor", DeviceType.SIMULATED),
