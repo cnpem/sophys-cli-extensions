@@ -92,7 +92,7 @@ class PlanGridScan(BaseScanCLI):
     absolute: bool
 
     def _usage(self):
-        return "%(prog)s motor start stop num motor start stop num [motor start stop num ...] [exposure_time] [-s/--snake] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+        return "%(prog)s motor start stop num motor start stop num [exposure_time] [-s/--snake]"
 
     def create_parser(self):
         _a = super().create_parser()
