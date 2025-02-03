@@ -46,7 +46,7 @@ class PlanNDScan(BaseScanCLI):
     absolute: bool
 
     def _usage(self):
-        return "%(prog)s motor start stop [motor start stop ...] num [exposure_time] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+        return "%(prog)s motor start stop [motor start stop ...] num [exposure_time]"
 
     def create_parser(self):
         _a = super().create_parser()
@@ -145,7 +145,7 @@ class PlanGridScan(BaseScanCLI):
 
 class PlanGridScanWithJitter(BaseScanCLI):
     def _usage(self):
-        return "%(prog)s motor start stop num motor start stop num [motor start stop num ...] [exposure_time] [-s/--snake] [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+        return "%(prog)s motor start stop num motor start stop num [motor start stop num ...] [exposure_time] [-s/--snake]"
 
     def _description(self):
         return super()._description() + """
@@ -236,7 +236,7 @@ jittermap ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
 
 class PlanMotorOrigin(PlanCLI):
     def _usage(self):
-        return "%(prog)s motor [position] [--md key=value key=value ...]"
+        return "%(prog)s motor [position]"
 
     def create_parser(self):
         _a = super().create_parser()
