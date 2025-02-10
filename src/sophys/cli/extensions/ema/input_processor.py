@@ -48,7 +48,11 @@ def add_plan_target(line: str, source: DataSource):
 
     targets = source.get(DataSource.DataType.MAIN_DETECTOR)
     if len(targets) == 0:
-        return line
+        if len(detectors := source.get(DataSource.DataType.DETECTORS)) != 1:
+            return line
+
+        # When with a single detector selected, use it as the target by default.
+        targets = detectors
     target = targets[0].strip()
     return f"{line.strip()} --after_plan_target {target} --md MAIN_COUNTER={target}"
 
