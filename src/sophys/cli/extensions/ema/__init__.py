@@ -269,7 +269,10 @@ def load_ipython_extension(ipython):
         ipython.magics_manager.registry["HTTPMagics"].additional_state = [sophys_state_query]
 
     if not test_mode:
-        add_to_namespace(NamespaceKeys.BLACKLISTED_DESCRIPTIONS, {"add_md", "remove_md", "disable_auto_increment"})
+        add_to_namespace(
+            NamespaceKeys.BLACKLISTED_DESCRIPTIONS,
+            {"add_md", "remove_md", "disable_auto_increment", "pause", "resume", "stop"}
+        )
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
