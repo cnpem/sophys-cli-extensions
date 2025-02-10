@@ -1,9 +1,9 @@
 import pytest
 
-from sophys.cli.core.data_source import LocalFileDataSource
+from sophys.cli.core.data_source import LocalFileDataSource, LocalInMemoryDataSource
 from sophys.cli.core.magics.plan_magics import PlanInformation
 from sophys.cli.extensions.ema import whitelisted_plan_list
-from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadata, input_processor
+from sophys.cli.extensions.ema.input_processor import add_detectors, add_metadata, add_plan_target, input_processor
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def local_data_source(test_data_location):
 
 
 def test_local_data_source_creation(local_data_source):
-    assert local_data_source._file_contents.shape[0] == 8, local_data_source._file_contents
+    assert local_data_source._file_contents.shape[0] == 9, local_data_source._file_contents
     assert local_data_source._file_contents.shape[1] == 2, local_data_source._file_contents
 
 
@@ -61,12 +61,32 @@ def test_add_metadata(sample_line, expected, local_data_source):
 
 
 @pytest.mark.parametrize(
+    "sample_line,expected", [
+        ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("%scan -mvs1 -1 1 10 0.1", "%scan -mvs1 -1 1 10 0.1 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("super_scan whatever whatever", "super_scan whatever whatever --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
+    ])
+def test_add_plan_target(sample_line, expected, local_data_source):
+    assert (ret := add_plan_target(sample_line, local_data_source)) == expected, ret
+
+
+def test_add_plan_target_one_detector_no_main():
+    data_source = LocalInMemoryDataSource()
+    data_source.add(LocalInMemoryDataSource.DataType.DETECTORS, "abc3")
+
+    line = "scan whatever whatever"
+
+    assert (ret := add_plan_target(line, data_source)) == "scan whatever whatever --after_plan_target abc3 --md MAIN_COUNTER=abc3", ret
+
+
+@pytest.mark.parametrize(
     "sample_lines,expected", [
-        (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
-        (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
-        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
-        (["%mov xyz1 -1 xyz2 1"], ["%mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2"]),
+        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["%mov xyz1 -1 xyz2 1"], ["%mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
     ])
 def test_input_processor(sample_lines, expected, local_data_source):
     assert (ret := input_processor(sample_lines, whitelisted_plan_list, local_data_source)) == expected, ret
