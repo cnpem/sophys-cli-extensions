@@ -273,7 +273,7 @@ def load_ipython_extension(ipython):
     if not test_mode:
         add_to_namespace(
             NamespaceKeys.BLACKLISTED_DESCRIPTIONS,
-            {"add_md", "remove_md", "disable_auto_increment", "pause", "resume", "stop"}
+            {"add_md", "remove_md", "disable_auto_increment", "pause", "resume", "stop", "wait_for_idle"}
         )
     print("\n".join(render_custom_magics(ipython)))
 
