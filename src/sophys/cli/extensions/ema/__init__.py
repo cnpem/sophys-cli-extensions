@@ -263,6 +263,8 @@ def load_ipython_extension(ipython):
     ipython.register_magics(KBLMagics)
     setup_input_transformer(ipython, plan_whitelist, test_mode)
 
+    KBLMagics.extra_arguments = ["--stats-widget-on-by-default"]
+
     if not local_mode:
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
