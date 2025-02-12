@@ -72,7 +72,7 @@ class UtilityMagics(Magics):
 
 
 def populate_mnemonics(*devices, md):
-    from sophys.ema.utils import mnemonic_to_pv_name
+    from sophys.ema.utils.mnemonics import mnemonic_to_pv_name
 
     res = dict()
 

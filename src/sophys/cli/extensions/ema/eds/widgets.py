@@ -143,7 +143,7 @@ class SeparateROIConfigurationWidget(QWidget):
 
     @functools.cached_property
     def parent_prefix(self):
-        from sophys.ema.utils import mnemonic_to_pv_name
+        from sophys.ema.utils.mnemonics import mnemonic_to_pv_name
         return mnemonic_to_pv_name(self._mnemonic)
 
 
@@ -202,7 +202,7 @@ class CombinedROIConfigurationWidget(QWidget):
 
     @functools.cached_property
     def parent_prefix(self):
-        from sophys.ema.utils import mnemonic_to_pv_name
+        from sophys.ema.utils.mnemonics import mnemonic_to_pv_name
         return mnemonic_to_pv_name(self._mnemonic)
 
 
