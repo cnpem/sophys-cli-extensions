@@ -1,5 +1,6 @@
 import functools
 import logging
+import typing
 
 from IPython.core.magic import Magics, magics_class, line_magic, needs_local_scope
 
@@ -136,6 +137,11 @@ def setup_persistent_metadata(ipython):
     return persistent_metadata.populate_permanent_md
 
 
+def render_device_list(device_list: dict[str, typing.Any]) -> list[str]:
+    from sophys.ema.utils.mnemonics import get_all_devices_sorted
+    return get_all_devices_sorted(device_source=list(device_list.keys()))
+
+
 def after_plan_submission_callback(ipython):
     return ipython.run_line_magic("wait_for_idle", "")
 
@@ -269,6 +275,7 @@ def load_ipython_extension(ipython):
         ipython.register_magics(HTTPMagics)
         ipython.magics_manager.registry["HTTPMagics"].plan_whitelist = plan_whitelist
         ipython.magics_manager.registry["HTTPMagics"].additional_state = [sophys_state_query]
+        ipython.magics_manager.registry["HTTPMagics"].device_list_renderer = render_device_list
 
     if not test_mode:
         add_to_namespace(
