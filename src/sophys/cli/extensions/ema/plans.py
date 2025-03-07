@@ -6,17 +6,12 @@ from sophys.cli.core.magics.plan_magics import ModeOfOperation
 from sophys.cli.core.magics.plan_magics import PlanCLI, BPlan
 
 
-class BaseScanCLI(PlanCLI):
-    def create_parser(self):
-        _a = super().create_parser()
+class _HDFBaseScanCLI:
+    def add_hdf_arguments(self, parser):
+        parser.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
+        parser.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
 
-        _a.add_argument("--hdf_file_name", type=str, nargs='?', default=None, help="Save file name for the data HDF5 file generated (if using an AreaDetector). Defaults to 'ascan_hour_minute_second_scanid.h5'.")
-        _a.add_argument("--hdf_file_path", type=str, nargs='?', default=None, help="Save path for the data HDF5 file generated (if using an AreaDetector). Defaults to CWD.")
-
-        _a.add_argument("--max", action="store_true", help="Go to the point of the scan with maximum value at the end.")
-        _a.add_argument("--after_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
-
-        return _a
+        return parser
 
     def parse_hdf_args(self, parsed_namespace, template: str | None = None):
         template = parsed_namespace.hdf_file_name or template
@@ -30,6 +25,14 @@ class BaseScanCLI(PlanCLI):
 
         return hdf_file_name, hdf_file_path
 
+
+class _AfterBaseScanCLI:
+    def add_after_arguments(self, parser):
+        parser.add_argument("--max", action="store_true", help="Go to the point of the scan with maximum value at the end.")
+        parser.add_argument("--after_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
+
+        return parser
+
     def get_after_plan_behavior_argument(self, parsed_namespace):
         if parsed_namespace.max:
             return "max"
@@ -40,6 +43,16 @@ class BaseScanCLI(PlanCLI):
             if len(parsed_namespace.detectors) == 1:
                 return parsed_namespace.detectors[0]
         return parsed_namespace.after_plan_target
+
+
+class BaseScanCLI(PlanCLI, _HDFBaseScanCLI, _AfterBaseScanCLI):
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a = self.add_hdf_arguments(_a)
+        _a = self.add_after_arguments(_a)
+
+        return _a
 
 
 class PlanNDScan(BaseScanCLI):
