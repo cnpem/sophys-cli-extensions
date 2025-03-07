@@ -180,6 +180,9 @@ def after_plan_request_failed_callback(exc: RequestFailedError, local_ns) -> Exc
         return ExceptionHandlerReturnValue.RETRY
 
     print("A pause is not pending, so it's likely someone else is using the server right now.")
+    print("The original exception said: ")
+    print(exc.response["msg"])
+    print()
     print("Use the 'query_state' magic for more information.")
     print()
 
