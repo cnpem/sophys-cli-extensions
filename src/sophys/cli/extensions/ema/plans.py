@@ -271,6 +271,38 @@ class PlanMotorOrigin(PlanCLI):
             return BPlan(self._plan_name, motor, position, md=md)
 
 
+class PlanCT(PlanCLI, _HDFBaseScanCLI):
+    def _usage(self):
+        return "%(prog)s number_of_points [exposure_time]"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a = self.add_hdf_arguments(_a)
+
+        _a.add_argument("number_of_points", type=int, nargs='?', default=None, help="Number of acquisitions to take.")
+        _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+        md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
+
+        number_of_points = parsed_namespace.number_of_points
+        exposure_time = parsed_namespace.exposure_time
+
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "ascan_%H_%M_%S")
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = hdf_file_path
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+
+
 class PlanAbsNDScan(PlanNDScan):
     absolute = True
 
