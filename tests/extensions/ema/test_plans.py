@@ -120,3 +120,45 @@ def test_ascan(ip_with_plans, mock_datetime, capsys):
     assert plan_data[6] == mock_datetime.strftime("ascan_%H_%M_%S")  # hdf_file_name
     assert plan_data[7] == os.getcwd()  # hdf_file_path
 
+    ip_with_plans.run_magic("ascan", "sim -1 1 sim2 -2 1.5 15 0.25")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim", -1.0, 1.0, "sim2", -2, 1.5]  # *args
+    assert plan_data[3] == 15  # num
+    assert plan_data[4] == 0.25  # exposure time
+    assert plan_data[6] == mock_datetime.strftime("ascan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+
+def test_rscan(ip_with_plans, mock_datetime, capsys):
+    ip_with_plans.run_magic("rscan", "-h")
+
+    captured = capsys.readouterr()
+    assert "usage: rscan motor start stop" in captured.out
+
+    ip_with_plans.run_magic("rscan", "sim -1 1 10")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
+    assert plan_data[3] == 10  # num
+    assert plan_data[4] is None  # exposure time
+    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("rscan", "sim -1 1 10 0.1")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
+    assert plan_data[3] == 10  # num
+    assert plan_data[4] == 0.1  # exposure time
+    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("rscan", "sim -1 1 sim2 -2 1.5 15 0.25")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim", -1.0, 1.0, "sim2", -2, 1.5]  # *args
+    assert plan_data[3] == 15  # num
+    assert plan_data[4] == 0.25  # exposure time
+    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
