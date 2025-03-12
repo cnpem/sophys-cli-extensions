@@ -99,6 +99,8 @@ class PlanNDScan(BaseScanCLI):
             return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        if self._mode_of_operation == ModeOfOperation.Test:
+            return (self._plan, detector, args, num, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
 
 
 class PlanGridScan(BaseScanCLI):
