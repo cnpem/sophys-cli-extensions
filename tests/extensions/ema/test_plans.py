@@ -230,3 +230,20 @@ def test_rel_grid_scan(ip_with_plans, mock_datetime, capsys):
     assert plan_data[4] is True  # snake axes
     assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
     assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+
+def test_mov(ip_with_plans, mock_datetime, capsys):
+    ip_with_plans.run_magic("mov", "-h")
+
+    captured = capsys.readouterr()
+    assert "A simple 'mov' plan" in captured.out
+
+    ip_with_plans.run_magic("mov", "sim 0.1")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[1] == ["sim", 0.1]
+
+    ip_with_plans.run_magic("mov", "sim1 1 sim2 2.3")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[1] == ["sim1", 1, "sim2", 2.3]
