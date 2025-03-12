@@ -162,3 +162,71 @@ def test_rscan(ip_with_plans, mock_datetime, capsys):
     assert plan_data[4] == 0.25  # exposure time
     assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
     assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+
+def test_abs_grid_scan(ip_with_plans, mock_datetime, capsys):
+    ip_with_plans.run_magic("grid_scan", "-h")
+
+    captured = capsys.readouterr()
+    assert "usage: grid_scan motor start stop num motor start stop num" in captured.out
+
+    ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] is None  # exposure time
+    assert plan_data[4] is False  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] == 0.25  # exposure time
+    assert plan_data[4] is False  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25 -s")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] == 0.25  # exposure time
+    assert plan_data[4] is True  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+
+def test_rel_grid_scan(ip_with_plans, mock_datetime, capsys):
+    ip_with_plans.run_magic("rel_grid_scan", "-h")
+
+    captured = capsys.readouterr()
+    assert "usage: rel_grid_scan motor start stop num motor start stop num" in captured.out
+
+    ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] is None  # exposure time
+    assert plan_data[4] is False  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] == 0.25  # exposure time
+    assert plan_data[4] is False  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path
+
+    ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25 -s")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
+    assert plan_data[3] == 0.25  # exposure time
+    assert plan_data[4] is True  # snake axes
+    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
+    assert plan_data[7] == os.getcwd()  # hdf_file_path

@@ -157,6 +157,8 @@ class PlanGridScan(BaseScanCLI):
             return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        if self._mode_of_operation == ModeOfOperation.Test:
+            return (self._plan, detector, args, exp_time, snake, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
 
 
 class PlanGridScanWithJitter(BaseScanCLI):
