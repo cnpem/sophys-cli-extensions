@@ -38,7 +38,7 @@ class _AfterBaseScanCLI:
             return "max"
         return "return"
 
-    def get_after_plan_target_argument(self, parsed_namespace, local_ns):
+    def get_after_plan_target_argument(self, parsed_namespace):
         if not parsed_namespace.after_plan_target:
             if len(parsed_namespace.detectors) == 1:
                 return parsed_namespace.detectors[0]
@@ -93,7 +93,7 @@ class PlanNDScan(BaseScanCLI):
             md["metadata_save_file_location"] = hdf_file_path
 
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
-        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
@@ -148,7 +148,7 @@ class PlanGridScan(BaseScanCLI):
             md["metadata_save_file_location"] = hdf_file_path
 
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
-        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
@@ -239,7 +239,7 @@ jittermap ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
             md["metadata_save_file_location"] = hdf_file_path
 
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
-        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
