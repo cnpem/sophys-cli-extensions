@@ -87,7 +87,8 @@ class PlanNDScan(BaseScanCLI):
 
         md = self.parse_md(*parsed_namespace.detectors, *motors, ns=parsed_namespace)
 
-        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "ascan_%H_%M_%S")
+        base_name = "ascan" if self.absolute else "rscan"
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, f"{base_name}_%H_%M_%S")
 
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
@@ -294,7 +295,7 @@ class PlanCT(PlanCLI, _HDFBaseScanCLI):
         number_of_points = parsed_namespace.number_of_points
         exposure_time = parsed_namespace.exposure_time
 
-        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "ascan_%H_%M_%S")
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "ct_%H_%M_%S")
 
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
