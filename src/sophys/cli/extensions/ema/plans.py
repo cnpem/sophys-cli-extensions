@@ -470,3 +470,46 @@ rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
     ms2l position (rel)        ms2r position (rel)
 
 """
+
+
+class PlanEScan(BaseScanCLI):
+    absolute: bool = True
+
+    def _usage(self):
+        return "%(prog)s [-e start stop step] [-k start stop step] -e0 initial_energy -n harmonic [--hdf_file_path] [--hdf_file_name] [--md key=value key=value ...]"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("-e", nargs=3, type=float, action="append", help="Specify an energy range (in keV), with a step size (in eV).")
+        _a.add_argument("-k", nargs=3, type=float, action="append", help="Specify a K-space range (start stop step_size).")
+
+        _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in keV.")
+        _a.add_argument("-n", "--harmonic", type=int, help="Harmonic number to use for the scan.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+
+        energy_ranges = parsed_namespace.e
+        k_ranges = parsed_namespace.k
+
+        initial_energy = parsed_namespace.initial_energy
+        harmonic = parsed_namespace.harmonic
+
+        # FIXME: Add IVU / DCM mnemonics to here.
+        md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
+
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "escan_%H_%M_%S")
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = hdf_file_path
+
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace, local_ns)
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, detector, energy_ranges, k_ranges, initial_energy=initial_energy, harmonic=harmonic, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, detector, energy_ranges, k_ranges, initial_energy=initial_energy, harmonic=harmonic, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
