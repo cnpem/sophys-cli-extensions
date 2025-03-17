@@ -6,7 +6,7 @@ from IPython.core.magic import Magics, magics_class, line_magic, needs_local_sco
 
 from bluesky_queueserver_api.comm_base import RequestFailedError
 
-from sophys.cli.core import ENVVARS, get_cli_envvar
+from sophys.cli.core import ENVVARS
 
 from sophys.cli.core.data_source import LocalInMemoryDataSource, RedisDataSource
 from sophys.cli.core.persistent_metadata import PersistentMetadata
@@ -115,8 +115,8 @@ def setup_input_transformer(ipython, plan_whitelist, test_mode: bool = False):
     if test_mode:
         remote_data_source = LocalInMemoryDataSource()
     else:
-        host = get_cli_envvar(ENVVARS.REDIS_HOST_ENVVAR)
-        port = get_cli_envvar(ENVVARS.REDIS_PORT_ENVVAR)
+        host = ENVVARS.REDIS_HOST
+        port = ENVVARS.REDIS_PORT
         remote_data_source = RedisDataSource(host, port)
 
     add_to_namespace(NamespaceKeys.REMOTE_DATA_SOURCE, remote_data_source, ipython=ipython)
@@ -194,14 +194,14 @@ def sophys_state_query() -> str:
 
     render = []
 
-    autosave_host = get_cli_envvar(ENVVARS.AUTOSAVE_HOST_ENVVAR)
-    autosave_port = get_cli_envvar(ENVVARS.AUTOSAVE_PORT_ENVVAR)
-    redis_host = get_cli_envvar(ENVVARS.REDIS_HOST_ENVVAR)
-    redis_port = get_cli_envvar(ENVVARS.REDIS_PORT_ENVVAR)
-    http_host = get_cli_envvar(ENVVARS.HTTPSERVER_HOST_ENVVAR)
-    http_port = get_cli_envvar(ENVVARS.HTTPSERVER_PORT_ENVVAR)
-    kafka_host = get_cli_envvar(ENVVARS.KAFKA_HOST_ENVVAR)
-    kafka_port = get_cli_envvar(ENVVARS.KAFKA_PORT_ENVVAR)
+    autosave_host = ENVVARS.AUTOSAVE_HOST
+    autosave_port = ENVVARS.AUTOSAVE_PORT
+    redis_host = ENVVARS.REDIS_HOST
+    redis_port = ENVVARS.REDIS_PORT
+    http_host = ENVVARS.HTTPSERVER_HOST
+    http_port = ENVVARS.HTTPSERVER_PORT
+    kafka_host = ENVVARS.KAFKA_HOST
+    kafka_port = ENVVARS.KAFKA_PORT
 
     # Hosts
     def ping(addr):
@@ -289,8 +289,8 @@ def load_ipython_extension(ipython):
     print("\n".join(render_custom_magics(ipython)))
 
     if not local_mode:
-        host = get_cli_envvar(ENVVARS.HTTPSERVER_HOST_ENVVAR)
-        port = get_cli_envvar(ENVVARS.HTTPSERVER_PORT_ENVVAR)
+        host = ENVVARS.HTTPSERVER_HOST
+        port = ENVVARS.HTTPSERVER_PORT
         setup_remote_session_handler(ipython, f"http://{host}:{port}", disable_authentication=True)
     else:
         plans = set(i[0].user_name for i in get_plans("ema", plan_whitelist))
