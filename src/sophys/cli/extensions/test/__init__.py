@@ -7,7 +7,7 @@ from sophys.cli.core.magics import render_custom_magics, setup_remote_session_ha
 from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
-from sophys.cli.core.magics.plan_magics import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from sophys.cli.core.magics.sample_plan_definitions import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
 
 
 PLAN_WHITELIST = PlanWhitelist(*[
