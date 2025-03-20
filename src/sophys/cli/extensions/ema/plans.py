@@ -3,7 +3,11 @@ import functools
 import os
 
 from sophys.cli.core.magics.plan_magics import ModeOfOperation
-from sophys.cli.core.magics.plan_magics import PlanCLI, BPlan
+from sophys.cli.core.magics.plan_magics import PlanCLI, remote_control_available
+
+
+if remote_control_available:
+    from bluesky_queueserver_api.item import BPlan
 
 
 class _HDFBaseScanCLI:
