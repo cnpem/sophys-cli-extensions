@@ -63,16 +63,16 @@ def test_after_base_scan():
     parser = argparse.ArgumentParser()
     after_base_scan.add_after_arguments(parser)
 
-    args = parser.parse_known_args(["--after_plan_target", "abc"])
+    args = parser.parse_known_args(["--plan_target", "abc"])
     assert not args[0].max
-    assert args[0].after_plan_target == "abc"
+    assert args[0].plan_target == "abc"
 
     behavior = after_base_scan.get_after_plan_behavior_argument(args[0])
     assert behavior == "return"
 
-    args = parser.parse_known_args(["--max", "--after_plan_target", "abc"])
+    args = parser.parse_known_args(["--max", "--plan_target", "abc"])
     assert args[0].max
-    assert args[0].after_plan_target == "abc"
+    assert args[0].plan_target == "abc"
 
     behavior = after_base_scan.get_after_plan_behavior_argument(args[0])
     assert behavior == "max"
@@ -81,7 +81,7 @@ def test_after_base_scan():
     target = after_base_scan.get_after_plan_target_argument(args[0])
     assert target == "abc"
 
-    args[0].after_plan_target = None
+    args[0].plan_target = None
     target = after_base_scan.get_after_plan_target_argument(args[0])
     assert target == "xyz"
 
@@ -250,7 +250,7 @@ def test_mov(ip_with_plans, mock_datetime, capsys):
     assert plan_data[1] == ["sim1", 1, "sim2", 2.3]
     assert plan_data[4] == 0
 
-    ip_with_plans.run_magic("mov", "sim1 sim2 --max --before_plan_target sim_det")
+    ip_with_plans.run_magic("mov", "sim1 sim2 --max --plan_target sim_det")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
     assert plan_data[1] == ["sim1", "sim2"]

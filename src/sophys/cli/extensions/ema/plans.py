@@ -33,7 +33,7 @@ class _HDFBaseScanCLI:
 class _AfterBaseScanCLI:
     def add_after_arguments(self, parser):
         parser.add_argument("--max", action="store_true", help="Go to the point of the scan with maximum value at the end.")
-        parser.add_argument("--after_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
+        parser.add_argument("--plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
 
         return parser
 
@@ -43,16 +43,16 @@ class _AfterBaseScanCLI:
         return "return"
 
     def get_after_plan_target_argument(self, parsed_namespace):
-        if not parsed_namespace.after_plan_target:
+        if not parsed_namespace.plan_target:
             if len(parsed_namespace.detectors) == 1:
                 return parsed_namespace.detectors[0]
-        return parsed_namespace.after_plan_target
+        return parsed_namespace.plan_target
 
 
 class _BeforeBaseScanCLI:
     def add_before_arguments(self, parser):
         parser.add_argument("--max", action="store_true", help="Go to the point of the previous scan with maximum value.")
-        parser.add_argument("--before_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
+        parser.add_argument("--plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
 
         return parser
 
@@ -62,10 +62,10 @@ class _BeforeBaseScanCLI:
         return None
 
     def get_before_plan_target_argument(self, parsed_namespace):
-        if not parsed_namespace.before_plan_target:
+        if not parsed_namespace.plan_target:
             if len(parsed_namespace.detectors) == 1:
                 return parsed_namespace.detectors[0]
-        return parsed_namespace.before_plan_target
+        return parsed_namespace.plan_target
 
 
 class BaseScanCLI(PlanCLI, _HDFBaseScanCLI, _AfterBaseScanCLI):

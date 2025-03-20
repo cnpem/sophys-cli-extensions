@@ -62,10 +62,10 @@ def test_add_metadata(sample_line, expected, local_data_source):
 
 @pytest.mark.parametrize(
     "sample_line,expected", [
-        ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
-        ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
-        ("%scan -mvs1 -1 1 10 0.1", "%scan -mvs1 -1 1 10 0.1 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
-        ("super_scan whatever whatever", "super_scan whatever whatever --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("scan -m -1 1 --num 10", "scan -m -1 1 --num 10 --plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("scan -mvs1 -1 1 10 0.1", "scan -mvs1 -1 1 10 0.1 --plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("%scan -mvs1 -1 1 10 0.1", "%scan -mvs1 -1 1 10 0.1 --plan_target abc2 --md MAIN_COUNTER=abc2"),
+        ("super_scan whatever whatever", "super_scan whatever whatever --plan_target abc2 --md MAIN_COUNTER=abc2"),
     ])
 def test_add_plan_target(sample_line, expected, local_data_source):
     assert (ret := add_plan_target(sample_line, local_data_source)) == expected, ret
@@ -77,16 +77,16 @@ def test_add_plan_target_one_detector_no_main():
 
     line = "scan whatever whatever"
 
-    assert (ret := add_plan_target(line, data_source)) == "scan whatever whatever --before_plan_target abc3 --after_plan_target abc3 --md MAIN_COUNTER=abc3", ret
+    assert (ret := add_plan_target(line, data_source)) == "scan whatever whatever --plan_target abc3 --md MAIN_COUNTER=abc3", ret
 
 
 @pytest.mark.parametrize(
     "sample_lines,expected", [
-        (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
-        (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["ascan -m -1 1 --num 10"], ["ascan -m -1 1 --num 10 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["ascan -mvs1 -1 1 10 0.1"], ["ascan -mvs1 -1 1 10 0.1 -d abc1 abc2 abc3 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --plan_target abc2 --md MAIN_COUNTER=abc2"]),
         (["super_scan whatever whatever"], ["super_scan whatever whatever"]),
-        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
-        (["%mov xyz1 -1 xyz2 1"], ["%mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --before_plan_target abc2 --after_plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["mov xyz1 -1 xyz2 1"], ["mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --plan_target abc2 --md MAIN_COUNTER=abc2"]),
+        (["%mov xyz1 -1 xyz2 1"], ["%mov xyz1 -1 xyz2 1 --md READ_BEFORE=xyz1 READ_DURING=mno1,mno2 READ_AFTER=rst1,rst2 --plan_target abc2 --md MAIN_COUNTER=abc2"]),
     ])
 def test_input_processor(sample_lines, expected, local_data_source):
     assert (ret := input_processor(sample_lines, whitelisted_plan_list, local_data_source)) == expected, ret
