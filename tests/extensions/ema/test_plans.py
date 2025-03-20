@@ -86,6 +86,35 @@ def test_after_base_scan():
     assert target == "xyz"
 
 
+def test_before_base_scan():
+    before_base_scan = plans._BeforeBaseScanCLI()
+
+    parser = argparse.ArgumentParser()
+    before_base_scan.add_before_arguments(parser)
+
+    args = parser.parse_known_args(["--plan_target", "abc"])
+    assert not args[0].max
+    assert args[0].plan_target == "abc"
+
+    behavior = before_base_scan.get_before_plan_behavior_argument(args[0])
+    assert behavior is None
+
+    args = parser.parse_known_args(["--max", "--plan_target", "abc"])
+    assert args[0].max
+    assert args[0].plan_target == "abc"
+
+    behavior = before_base_scan.get_before_plan_behavior_argument(args[0])
+    assert behavior == "max"
+
+    args[0].detectors = ["xyz"]
+    target = before_base_scan.get_before_plan_target_argument(args[0])
+    assert target == "abc"
+
+    args[0].plan_target = None
+    target = before_base_scan.get_before_plan_target_argument(args[0])
+    assert target == "xyz"
+
+
 @pytest.fixture
 def ip_with_plans(ip, ok_mock_api):
     setup_plan_magics(ip, "ema", PlanWhitelist(*whitelisted_plan_list), ModeOfOperation.Test)
