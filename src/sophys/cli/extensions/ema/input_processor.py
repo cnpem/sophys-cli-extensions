@@ -54,7 +54,7 @@ def add_plan_target(line: str, source: DataSource):
         # When with a single detector selected, use it as the target by default.
         targets = detectors
     target = targets[0].strip()
-    return f"{line.strip()} --after_plan_target {target} --md MAIN_COUNTER={target}"
+    return f"{line.strip()} --before_plan_target {target} --after_plan_target {target} --md MAIN_COUNTER={target}"
 
 
 def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], data_source: DataSource):
