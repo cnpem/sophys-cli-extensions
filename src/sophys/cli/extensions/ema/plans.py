@@ -49,6 +49,25 @@ class _AfterBaseScanCLI:
         return parsed_namespace.after_plan_target
 
 
+class _BeforeBaseScanCLI:
+    def add_before_arguments(self, parser):
+        parser.add_argument("--max", action="store_true", help="Go to the point of the previous scan with maximum value.")
+        parser.add_argument("--before_plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
+
+        return parser
+
+    def get_before_plan_behavior_argument(self, parsed_namespace):
+        if parsed_namespace.max:
+            return "max"
+        return None
+
+    def get_before_plan_target_argument(self, parsed_namespace):
+        if not parsed_namespace.before_plan_target:
+            if len(parsed_namespace.detectors) == 1:
+                return parsed_namespace.detectors[0]
+        return parsed_namespace.before_plan_target
+
+
 class BaseScanCLI(PlanCLI, _HDFBaseScanCLI, _AfterBaseScanCLI):
     def create_parser(self):
         _a = super().create_parser()
@@ -310,6 +329,38 @@ class PlanCT(PlanCLI, _HDFBaseScanCLI):
             return functools.partial(self._plan, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+
+
+class PlanMV(PlanCLI, _BeforeBaseScanCLI):
+    def _usage(self):
+        return "%(prog)s motor position [...] OR motors --max"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("args", nargs='+', type=str)
+        _a = self.add_before_arguments(_a)
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        args, _, motors = self.parse_varargs(parsed_namespace.args, local_ns)
+
+        md = self.parse_md(*motors, ns=parsed_namespace)
+
+        before_plan_behavior = self.get_before_plan_behavior_argument(parsed_namespace)
+        before_plan_target = self.get_before_plan_target_argument(parsed_namespace)
+
+        data_index = 0
+        if before_plan_behavior is not None:
+            data_index = -1
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, *args, target=before_plan_target, behavior=before_plan_behavior, use_old_data=data_index, md=md)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan.__name__, *args, target=before_plan_target, behavior=before_plan_behavior, use_old_data=data_index, md=md)
+        if self._mode_of_operation == ModeOfOperation.Test:
+            return (self._plan, args, before_plan_target, before_plan_behavior, data_index, md)
 
 
 class PlanAbsNDScan(PlanNDScan):

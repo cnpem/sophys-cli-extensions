@@ -16,12 +16,12 @@ from sophys.cli.core.magics import render_custom_magics, setup_remote_session_ha
 from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist, ExceptionHandlerReturnValue
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
-from sophys.cli.core.magics.sample_plan_definitions import PlanMV, PlanReadMany, PlanCount
+from sophys.cli.core.magics.sample_plan_definitions import PlanReadMany, PlanCount
 
 from .eds.device_selector import spawnDeviceSelector
 from .input_processor import input_processor
 from .ipython_config import setup_prompt
-from .plans import PlanAbsNDScan, PlanRelNDScan, PlanAbsGridScan, PlanRelGridScan, PlanGridScanWithJitter, PlanMotorOrigin, PlanCT
+from .plans import PlanAbsNDScan, PlanRelNDScan, PlanAbsGridScan, PlanRelGridScan, PlanGridScanWithJitter, PlanMotorOrigin, PlanCT, PlanMV
 
 
 @magics_class

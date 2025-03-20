@@ -242,8 +242,18 @@ def test_mov(ip_with_plans, mock_datetime, capsys):
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
     assert plan_data[1] == ["sim", 0.1]
+    assert plan_data[4] == 0
 
     ip_with_plans.run_magic("mov", "sim1 1 sim2 2.3")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
     assert plan_data[1] == ["sim1", 1, "sim2", 2.3]
+    assert plan_data[4] == 0
+
+    ip_with_plans.run_magic("mov", "sim1 sim2 --max --before_plan_target sim_det")
+
+    plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
+    assert plan_data[1] == ["sim1", "sim2"]
+    assert plan_data[2] == "sim_det"
+    assert plan_data[3] == "max"
+    assert plan_data[4] == -1
