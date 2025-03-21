@@ -298,6 +298,12 @@ def load_ipython_extension(ipython):
 
     setup_prompt(ipython)
 
+    if local_mode:
+        # Configure databroker for 'mov' plan runs
+        db = get_from_namespace(NamespaceKeys.DATABROKER, ipython=ipython)
+        from sophys.ema.plans import get_globals
+        get_globals().update({"db": db})
+
 
 def unload_ipython_extension(ipython):
     pass
