@@ -52,6 +52,7 @@ class _AfterBaseScanCLI:
 class _BeforeBaseScanCLI:
     def add_before_arguments(self, parser):
         parser.add_argument("--max", action="store_true", help="Go to the point of the previous scan with maximum value.")
+        parser.add_argument("--min", action="store_true", help="Go to the point of the previous scan with minimum value.")
         parser.add_argument("--plan_target", type=str, nargs='?', help=argparse.SUPPRESS)
 
         return parser
@@ -59,6 +60,8 @@ class _BeforeBaseScanCLI:
     def get_before_plan_behavior_argument(self, parsed_namespace):
         if parsed_namespace.max:
             return "max"
+        if parsed_namespace.min:
+            return "min"
         return None
 
     def get_before_plan_target_argument(self, parsed_namespace):
