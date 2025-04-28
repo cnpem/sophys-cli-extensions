@@ -532,12 +532,13 @@ rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
 
 class PlanEScan(BaseScanCLI):
     def _usage(self):
-        return "%(prog)s [-e start stop step] [-k start stop step] -e0 initial_energy [-t acquisition_time] [-st settling_time]"
+        return "%(prog)s [-e start stop step] [-r energy] [-k start stop step] -e0 initial_energy [-t acquisition_time] [-st settling_time]"
 
     def create_parser(self):
         _a = super().create_parser()
 
         _a.add_argument("-e", nargs=3, type=float, action="append", help="Specify an energy range (in eV), with a step size (in eV).")
+        _a.add_argument("-r", "--relative_to", type=float, default=0, help="Calculate all energies relative to this one, in eV.")
         _a.add_argument("-k", nargs=3, type=float, action="append", help="Specify a K-space range (start stop step_size).")
 
         _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in eV.")
@@ -558,6 +559,9 @@ class PlanEScan(BaseScanCLI):
         k_ranges = parsed_namespace.k
         if k_ranges is None:
             k_ranges = []
+
+        r = parsed_namespace.relative_to
+        energy_ranges = [(x + r, y + r, s) for x, y, s in energy_ranges]
 
         initial_energy = parsed_namespace.initial_energy
 
