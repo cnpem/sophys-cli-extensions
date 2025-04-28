@@ -546,6 +546,8 @@ class PlanEScan(BaseScanCLI):
         _a.add_argument("-st", "--settling_time", type=int, default=250, help="Time (ms) to wait after DCM movement for settling. Default: 250ms")
         _a.add_argument("-t", "--acquisition_time", type=int, default=1000, help="Time (ms) for each acquisition pulse. Default: 1000ms")
 
+        _a.add_argument("--no-use-undulator", action="store_true", help="Don't change undulator parameters in this plan.")
+
         return _a
 
     def _create_plan(self, parsed_namespace, local_ns):
@@ -568,10 +570,12 @@ class PlanEScan(BaseScanCLI):
         settle_time = parsed_namespace.settling_time
         acq_time = parsed_namespace.acquisition_time
 
+        use_undulator = not parsed_namespace.no_use_undulator
+
         # FIXME: Add IVU / DCM mnemonics to here.
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
+            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
+            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
