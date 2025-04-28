@@ -575,6 +575,9 @@ class PlanEScan(BaseScanCLI):
         # FIXME: Add IVU / DCM mnemonics to here.
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = os.getcwd()
+
         if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
         if self._mode_of_operation == ModeOfOperation.Remote:
