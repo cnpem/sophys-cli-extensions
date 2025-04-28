@@ -247,7 +247,7 @@ whitelisted_plan_list = [
     PlanInformation("motor_set_origin", "mset", PlanMotorOrigin),
     PlanInformation("ct", "ct", PlanCT),
     PlanInformation("grid_scan_with_jitter", "jittermap", PlanGridScanWithJitter),
-    PlanInformation("escan_step_scan_by_hw", "escan", PlanEScan, has_detectors=False),
+    PlanInformation("escan_step_scan_by_hw", "escan", PlanEScan),
 ]
 
 

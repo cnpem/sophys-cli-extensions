@@ -548,6 +548,10 @@ class PlanEScan(BaseScanCLI):
         return _a
 
     def _create_plan(self, parsed_namespace, local_ns):
+        if len(parsed_namespace.detectors) == 0:
+            parsed_namespace.detectors = ["i0c", "i1c"]
+        detectors = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+
         energy_ranges = parsed_namespace.e
         if energy_ranges is None:
             energy_ranges = []
@@ -564,6 +568,6 @@ class PlanEScan(BaseScanCLI):
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
+            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
+            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time)
