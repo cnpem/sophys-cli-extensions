@@ -565,7 +565,7 @@ class PlanEScan(BaseScanCLI):
 
         initial_energy = parsed_namespace.initial_energy
 
-        settle_time = parsed_namespace.settle_time
+        settle_time = parsed_namespace.settling_time
         acq_time = parsed_namespace.acquisition_time
 
         # FIXME: Add IVU / DCM mnemonics to here.
