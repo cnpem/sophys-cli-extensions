@@ -553,6 +553,7 @@ class PlanEScan(BaseScanCLI):
     def _create_plan(self, parsed_namespace, local_ns):
         if len(parsed_namespace.detectors) == 0:
             parsed_namespace.detectors = ["i0c", "i1c"]
+        parsed_namespace.detectors.extend(["dcm_energy"])
         detectors = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
 
         energy_ranges = parsed_namespace.e
@@ -572,7 +573,6 @@ class PlanEScan(BaseScanCLI):
 
         use_undulator = not parsed_namespace.no_use_undulator
 
-        # FIXME: Add IVU / DCM mnemonics to here.
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
         if "metadata_save_file_location" not in md:
