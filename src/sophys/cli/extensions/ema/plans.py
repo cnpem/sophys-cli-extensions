@@ -547,6 +547,8 @@ class PlanEScan(BaseScanCLI):
         _a.add_argument("-t", "--acquisition_time", type=int, default=1000, help="Time (ms) for each acquisition pulse. Default: 1000ms")
 
         _a.add_argument("--no-use-undulator", action="store_true", help="Don't change undulator parameters in this plan.")
+        _a.add_argument("--no-use-crio01", action="store_true", help="Don't change or trigger CRIO01 parameters in this plan.")
+        _a.add_argument("--no-use-crio02", action="store_true", help="Don't change or trigger CRIO02 parameters in this plan.")
 
         return _a
 
@@ -572,6 +574,8 @@ class PlanEScan(BaseScanCLI):
         acq_time = parsed_namespace.acquisition_time
 
         use_undulator = not parsed_namespace.no_use_undulator
+        use_crio01 = not parsed_namespace.no_use_crio01
+        use_crio02 = not parsed_namespace.no_use_crio02
 
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
@@ -579,9 +583,9 @@ class PlanEScan(BaseScanCLI):
             md["metadata_save_file_location"] = os.getcwd()
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
+            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
+            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02)
 
 
 class PlanMoveEnergy(PlanCLI):
