@@ -582,3 +582,25 @@ class PlanEScan(BaseScanCLI):
             return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator)
+
+
+class PlanMoveEnergy(PlanCLI):
+    def _usage(self):
+        return "%(prog)s energy"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("energy", type=float, help="Energy to move to, in eV.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        energy = parsed_namespace.energy
+
+        md = self.parse_md(ns=parsed_namespace)
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, energy, md=md)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan.__name__, energy, md=md)
