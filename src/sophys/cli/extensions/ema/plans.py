@@ -531,15 +531,61 @@ rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
 
 
 class PlanEScan(BaseScanCLI):
+    class RangeAction(argparse.Action):
+        """
+        Custom argparse Action to parse energy and k-space ranges.
+
+        This action deals with 2 and 3-element k-space range specifications,
+        and maintains the range ordering in the populated tuples. This means
+        that it provides support for later stages to calculate missing start
+        positions (None as the start position), based on the last sequential
+        range provided by the user.
+
+        It populates the namespace with two keys, 'e' and 'k', each being a
+        list of tuples of the form:
+            (range index, start position (can be None), end position, step)
+        """
+
+        def __call__(self, parser, namespace, values, option_string):
+            if not hasattr(namespace, "_current_range_index"):
+                namespace._current_range_index = 0
+
+            match option_string:
+                case "-e":
+                    if namespace.e is None:
+                        namespace.e = []
+
+                    n_values = len(values)
+                    if n_values == 3:
+                        namespace.e.append(tuple([namespace._current_range_index, *values]))
+                    else:
+                        raise Exception(f"Can only specify an energy range with 3 values, not {n_values}.")
+
+                case "-k":
+                    if namespace.k is None:
+                        namespace.k = []
+
+                    n_values = len(values)
+                    if n_values == 2:
+                        if namespace._current_range_index == 0:
+                            raise Exception("You need to specify a range with a start position before specifying one without.")
+                        namespace.k.append(tuple([namespace._current_range_index, None, *values]))
+                    elif n_values == 3:
+                        namespace.k.append(tuple([namespace._current_range_index, *values]))
+                    else:
+                        raise Exception(f"Can only specify a k-space range with 2 ou 3 values, not {n_values}.")
+
+            namespace._current_range_index += 1
+
     def _usage(self):
-        return "%(prog)s [-e start stop step] [-r energy] [-k start stop step] -e0 initial_energy [-t acquisition_time] [-st settling_time]"
+        return "%(prog)s [-e start stop step] [-r energy] [-k [start] stop step] [-e0 initial_energy] [-t acquisition_time] [-st settling_time]"
 
     def create_parser(self):
         _a = super().create_parser()
 
-        _a.add_argument("-e", nargs=3, type=float, action="append", help="Specify an energy range (in eV), with a step size (in eV).")
+        _a.add_argument("-e", nargs="+", type=float, action=self.RangeAction, help="Specify an energy range (in eV), with a step size (in eV).")
         _a.add_argument("-r", "--relative_to", type=float, default=0, help="Calculate all energies relative to this one, in eV.")
-        _a.add_argument("-k", nargs=3, type=float, action="append", help="Specify a K-space range (start stop step_size).")
+        _a.add_argument("-k", nargs="+", type=float, action=self.RangeAction, help="Specify a K-space range (start stop step_size).")
 
         _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in eV.")
 
