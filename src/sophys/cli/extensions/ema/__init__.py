@@ -21,7 +21,7 @@ from sophys.cli.core.magics.sample_plan_definitions import PlanReadMany, PlanCou
 from .eds.device_selector import spawnDeviceSelector
 from .input_processor import input_processor
 from .ipython_config import setup_prompt
-from .plans import PlanAbsNDScan, PlanRelNDScan, PlanAbsGridScan, PlanRelGridScan, PlanGridScanWithJitter, PlanMotorOrigin, PlanCT, PlanMV
+from .plans import PlanAbsNDScan, PlanRelNDScan, PlanAbsGridScan, PlanRelGridScan, PlanGridScanWithJitter, PlanMotorOrigin, PlanCT, PlanMV, PlanEScan, PlanMoveEnergy
 
 
 @magics_class
@@ -247,6 +247,8 @@ whitelisted_plan_list = [
     PlanInformation("motor_set_origin", "mset", PlanMotorOrigin),
     PlanInformation("ct", "ct", PlanCT),
     PlanInformation("grid_scan_with_jitter", "jittermap", PlanGridScanWithJitter),
+    PlanInformation("escan_step_scan_by_hw", "escan", PlanEScan),
+    PlanInformation("move_energy", "mov_e", PlanMoveEnergy, has_detectors=False),
 ]
 
 
