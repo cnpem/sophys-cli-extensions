@@ -612,7 +612,7 @@ class PlanEScan(BaseScanCLI):
             k_ranges = []
 
         r = parsed_namespace.relative_to
-        energy_ranges = [(x + r, y + r, s) for x, y, s in energy_ranges]
+        energy_ranges = [(idx, x + r, y + r, s) for idx, x, y, s in energy_ranges]
 
         initial_energy = parsed_namespace.initial_energy
 
