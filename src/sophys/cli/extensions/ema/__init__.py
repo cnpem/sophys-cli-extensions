@@ -236,20 +236,24 @@ def sophys_state_query() -> str:
     return "\n".join(render)
 
 
+hidden_argument_names = {"detectors", "md"}
+_a = hidden_argument_names
+
+
 whitelisted_plan_list = [
-    PlanInformation("mov", "mov", PlanMV, has_detectors=False),
-    PlanInformation("rmov", "rmov", PlanMV, has_detectors=False),
-    PlanInformation("read_many", "read", PlanReadMany, has_detectors=False),
-    PlanInformation("count", "count", PlanCount),
-    PlanInformation("grid_scan", "grid_scan", PlanAbsGridScan),
-    PlanInformation("grid_scan", "rel_grid_scan", PlanRelGridScan),
-    PlanInformation("scanNd", "ascan", PlanAbsNDScan),
-    PlanInformation("scanNd", "rscan", PlanRelNDScan),
-    PlanInformation("motor_set_origin", "mset", PlanMotorOrigin),
-    PlanInformation("ct", "ct", PlanCT),
-    PlanInformation("grid_scan_with_jitter", "jittermap", PlanGridScanWithJitter),
-    PlanInformation("escan_step_scan_by_hw", "escan", PlanEScan),
-    PlanInformation("move_energy", "mov_e", PlanMoveEnergy, has_detectors=False),
+    PlanInformation("mov", "mov", PlanMV, has_detectors=False, hide_args=_a),
+    PlanInformation("rmov", "rmov", PlanMV, has_detectors=False, hide_args=_a),
+    PlanInformation("read_many", "read", PlanReadMany, has_detectors=False, hide_args=_a),
+    PlanInformation("count", "count", PlanCount, hide_args=_a),
+    PlanInformation("grid_scan", "grid_scan", PlanAbsGridScan, hide_args=_a),
+    PlanInformation("grid_scan", "rel_grid_scan", PlanRelGridScan, hide_args=_a),
+    PlanInformation("scanNd", "ascan", PlanAbsNDScan, hide_args=_a),
+    PlanInformation("scanNd", "rscan", PlanRelNDScan, hide_args=_a),
+    PlanInformation("motor_set_origin", "mset", PlanMotorOrigin, hide_args=_a),
+    PlanInformation("ct", "ct", PlanCT, hide_args=_a),
+    PlanInformation("grid_scan_with_jitter", "jittermap", PlanGridScanWithJitter, hide_args=_a),
+    PlanInformation("escan_step_scan_by_hw", "escan", PlanEScan, hide_args=_a),
+    PlanInformation("move_energy", "mov_e", PlanMoveEnergy, has_detectors=False, hide_args=_a),
 ]
 
 
