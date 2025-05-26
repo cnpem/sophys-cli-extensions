@@ -101,7 +101,8 @@ def populate_mnemonics(*devices, md):
 
 
 def do_spec_files(*devices, md):
-    md["metadata_save_file_format"] = "SPEC"
+    if "metadata_save_file_format" not in md:
+        md["metadata_save_file_format"] = "SPEC"
     return md
 
 
