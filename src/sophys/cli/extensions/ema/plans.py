@@ -602,6 +602,8 @@ class PlanEScan(BaseScanCLI):
         if len(parsed_namespace.detectors) == 0:
             parsed_namespace.detectors = ["i0c", "i1c"]
         parsed_namespace.detectors.extend(["dcm_energy"])
+        use_vortex = any("xrf" in det for det in parsed_namespace.detectors)
+
         detectors = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
 
         energy_ranges = parsed_namespace.e
@@ -629,9 +631,9 @@ class PlanEScan(BaseScanCLI):
             md["metadata_save_file_location"] = os.getcwd()
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02)
+            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02)
+            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
 
 
 class PlanMoveEnergy(PlanCLI):
