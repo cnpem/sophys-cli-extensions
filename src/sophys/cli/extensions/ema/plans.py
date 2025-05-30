@@ -1,6 +1,9 @@
 import argparse
 import functools
 import os
+import typing
+
+from collections import defaultdict
 
 from sophys.cli.core.magics.plan_magics import ModeOfOperation
 from sophys.cli.core.magics.plan_magics import PlanCLI, remote_control_available
@@ -128,6 +131,120 @@ class PlanNDScan(BaseScanCLI):
             return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Test:
             return (self._plan, detector, args, num, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
+
+
+class PlanNDListScan(BaseScanCLI):
+    absolute: bool
+
+    class RangeAction(argparse.Action):
+        """
+        Custom argparse Action to parse list scan position ranges, including
+        individual positions and lists / tuples of positions (e.g. inputted via
+        a variable substitutions with '$').
+        """
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self._current_partial_list = None
+
+        def maybe_fill_partial_list(self, value: str) -> tuple[bool, typing.Iterable | None]:
+            """
+            If detected, reassemble an input list of positions.
+
+            Parameters
+            ----------
+            value : str
+                The inputted value at the current location.
+
+            Returns
+            -------
+            tuple of boolean and an iterable or None. The boolean represents whether
+            the current value is detected as being a part of a list, and the iterable
+            is filled with the full list of parsed positions when the last item is
+            retrieved.
+            """
+            if value.startswith(('[', '(')):
+                self._current_partial_list = [value]
+                return True, None
+
+            if value.endswith((']', ')')):
+                self._current_partial_list.append(value)
+                full_positions = [float(x) for x in eval(''.join(self._current_partial_list))]
+                self._current_partial_list = None
+                return True, full_positions
+
+            if self._current_partial_list is not None:
+                self._current_partial_list.append(value)
+                return True, None
+
+            return False, None
+
+        def __call__(self, parser, namespace, values, option_string):
+            motor_positions = defaultdict(lambda: [])
+
+            current_positioner = None
+
+            for value in values:
+                try:
+                    # Is it a position value?
+                    value = float(value)
+                except ValueError:
+                    # Not a position value, discover what it is.
+
+                    # A partial list item
+                    filling_partial_list, full_position_list = self.maybe_fill_partial_list(value)
+                    if filling_partial_list:
+                        if full_position_list is not None:
+                            motor_positions[current_positioner].extend(full_position_list)
+                        continue
+
+                    # A positioner name
+                    current_positioner = value
+                else:
+                    # Is a position value, append it.
+                    if current_positioner is None:
+                        raise Exception("You need to specify a motor device before the list of positions.")
+                    motor_positions[current_positioner].append(value)
+
+            namespace.args = []
+            for positioner, positions in motor_positions.items():
+                namespace.args.extend([positioner, tuple(positions)])
+
+    def _usage(self):
+        return "%(prog)s motor positions [motor positions ...] [-t exposure_time]"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("args", nargs='+', action=self.RangeAction, type=str, help="Motor informations, in order (mnemonic positions)")
+        _a.add_argument("-t", "--exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+        args, _, motors = self.parse_varargs(parsed_namespace.args, local_ns)
+
+        exp_time = parsed_namespace.exposure_time
+
+        md = self.parse_md(*parsed_namespace.detectors, *motors, ns=parsed_namespace)
+
+        base_name = "list_ascan" if self.absolute else "list_rscan"
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, f"{base_name}_%H_%M_%S")
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = hdf_file_path
+
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        if self._mode_of_operation == ModeOfOperation.Test:
+            return (self._plan, detector, args, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
 
 
 class PlanGridScan(BaseScanCLI):
@@ -443,6 +560,84 @@ rscan ms2r 0.488 0.49 wst 0.0 0.4 5 0.1
     |-----x------------x------------x------------x------------x------|
     |    0.0          0.1          0.2          0.3          0.4     |
     |                      wst position (rel)                        |
+"""
+
+
+class PlanAbsNDListScan(PlanNDListScan):
+    absolute = True
+
+    def _description(self):
+        return super()._description() + """
+
+Example usages:
+
+list_ascan ms2r 1 2 4
+    Make a 1D scan over 3 points on the 'ms2r' motor, in absolute coordinates:
+
+    | scan point | scan point |            | scan point |
+    |-----x------------x-------------------------x------|
+          1            2                         4
+                     ms2r position (abs)
+
+    The exposure time used is the one set before the scan on the IOC.
+
+list_ascan wst 0.0 0.4 0.5 0.6 -t 0.1
+    Make a 1D scan over 4 points on the 'wst' motor, in absolute coordinates,
+    with exposure time per-point equal to 0.1 seconds:
+
+    | scan point |            | scan point | scan point | scan point |
+    |-----x------------//-----------x------------x------------x------|
+         0.0                       0.4          0.5          0.6
+                           wst position (abs)
+
+list_ascan ms2r [1, 2, 3] wst 0.0 0.2 0.4 -t 0.1
+    Make a 2D scan over 3 points on the 'ms2r' and 'wst' motors, in absolute coordinates,
+    with exposure time per-point equal to 0.1 seconds, and moving at the same time:
+
+    |         ms2r position (abs)         |
+    |    1.0          2.0          3.0    |
+    |-----x------------x------------x-----|
+    |    0.0          0.2          0.4    |
+    |          wst position (abs)         |
+"""
+
+
+class PlanRelNDListScan(PlanNDListScan):
+    absolute = False
+
+    def _description(self):
+        return super()._description() + """
+
+Example usages:
+
+list_rscan ms2r -1 1 5
+    Make a 1D scan over 3 points on the 'ms2r' motor, in relative coordinates:
+
+    | scan point | scan point |            | scan point |
+    |-----x------------x-------------------------x------|
+         -1            1                         5
+                     ms2r position (rel)
+
+    The exposure time used is the one set before the scan on the IOC.
+
+list_rscan wst 0.0 0.4 0.5 0.6 -t 0.1
+    Make a 1D scan over 4 points on the 'wst' motor, in relative coordinates,
+    with exposure time per-point equal to 0.1 seconds:
+
+    | scan point |            | scan point | scan point | scan point |
+    |-----x------------//-----------x------------x------------x------|
+         0.0                       0.4          0.5          0.6
+                           wst position (rel)
+
+list_rscan ms2r [1, 2, 3] wst 0.0 0.2 0.4 -t 0.1
+    Make a 2D scan over 3 points on the 'ms2r' and 'wst' motors, in relative coordinates,
+    with exposure time per-point equal to 0.1 seconds, and moving at the same time:
+
+    |         ms2r position (rel)         |
+    |    1.0          2.0          3.0    |
+    |-----x------------x------------x-----|
+    |    0.0          0.2          0.4    |
+    |          wst position (rel)         |
 """
 
 
