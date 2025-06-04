@@ -100,15 +100,19 @@ def populate_mnemonics(*devices, md):
     return md
 
 
-def do_spec_files(*devices, md):
+def do_spec_and_nexus_files(*devices, md):
     if "metadata_save_file_format" not in md:
-        md["metadata_save_file_format"] = "SPEC"
+        md["metadata_save_file_format"] = "SPEC,NEXUS"
+
+    # Assonant metadata
+    md["beamline_name"] = "EMA"
+
     return md
 
 
 whitelisted_plan_md_preprocessors = [
     populate_mnemonics,
-    do_spec_files,
+    do_spec_and_nexus_files,
 ]
 
 
