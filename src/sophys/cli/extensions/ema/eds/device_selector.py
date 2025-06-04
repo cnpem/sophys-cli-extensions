@@ -1,7 +1,7 @@
 import typing
 
 from dataclasses import dataclass
-from enum import IntFlag
+from enum import IntFlag, auto
 from pathlib import Path
 
 from qtpy.uic import loadUi
@@ -15,9 +15,10 @@ from .widgets import CombinedROIConfigurationPushButton, SeparateROIConfiguratio
 
 
 class DeviceType(IntFlag):
-    READABLE = 0b001
-    SETTABLE = 0b010
-    SIMULATED = 0b100
+    READABLE = auto()
+    SETTABLE = auto()
+    DVF = auto()
+    SIMULATED = auto()
 
 
 class DeviceROIType(IntFlag):
@@ -116,6 +117,10 @@ EMA_DEVICES = [
     DeviceItem("Interferometer - X", "ifmx", DeviceType.SETTABLE),
     DeviceItem("Interferometer - Z", "ifmz", DeviceType.SETTABLE),
 
+    DeviceItem("OEA MVS1", "bvs1", DeviceType.DVF),
+    DeviceItem("OEA MVS2", "bvs2", DeviceType.DVF),
+    DeviceItem("OEA MVS3", "bvs3", DeviceType.DVF),
+
     DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
 
     DeviceItem("Motor", "sim_motor", DeviceType.SIMULATED),
@@ -153,6 +158,7 @@ class DeviceSelectorMainWindow(QMainWindow):
 
         readable_form = self._base_ui.counters_area.layout()
         settable_form = self._base_ui.generic_area.layout()
+        dvf_form = self._base_ui.dvf_area.layout()
         simulated_form = None
 
         if in_test_mode:
@@ -161,7 +167,7 @@ class DeviceSelectorMainWindow(QMainWindow):
             simulated_form = QGridLayout()
             simulated_page.setLayout(simulated_form)
 
-        self.populateDevices(readable_form, settable_form, simulated_form)
+        self.populateDevices(readable_form, settable_form, dvf_form, simulated_form)
 
         self.main_layout.addWidget(device_type_tab_widget)
 
@@ -186,8 +192,14 @@ class DeviceSelectorMainWindow(QMainWindow):
         combo_box = SourcedComboBox(self._data_source, in_type=DataSource.DataType.DETECTORS, out_type=DataSource.DataType.MAIN_DETECTOR)
         main_counter_form.addWidget(combo_box)
 
-    def populateDevices(self, readable_form: QGridLayout, settable_form: QGridLayout, simulated_form: typing.Optional[QGridLayout] = None):
-        for form in (readable_form, settable_form, simulated_form):
+    def populateDevices(
+        self,
+        readable_form: QGridLayout,
+        settable_form: QGridLayout,
+        dvf_form: QGridLayout,
+        simulated_form: typing.Optional[QGridLayout] = None
+    ):
+        for form in (readable_form, settable_form, dvf_form, simulated_form):
             if form is None:
                 continue
 
@@ -245,6 +257,8 @@ class DeviceSelectorMainWindow(QMainWindow):
                 add_to_layout(item, readable_form)
             if item.type & DeviceType.SETTABLE:
                 add_to_layout(item, settable_form)
+            if item.type & DeviceType.DVF:
+                add_to_layout(item, dvf_form)
             if item.type & DeviceType.SIMULATED and (simulated_form is not None):
                 add_to_layout(item, simulated_form)
 
