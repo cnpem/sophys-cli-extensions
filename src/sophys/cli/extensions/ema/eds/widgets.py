@@ -65,6 +65,18 @@ class SourcedComboBox(QComboBox):
         new_opts = natsorted(list(self._data_source.get(self._in_data_type)))
         new_opts.insert(0, "No selected device.")
 
+        needs_update = len(new_opts) != self.count()
+        for index, option in enumerate(new_opts):
+            if index >= self.count():
+                needs_update = True
+                break
+            if self.itemText(index) != option:
+                needs_update = True
+                break
+
+        if not needs_update:
+            return
+
         self.blockSignals(True)
         self.clear()
         self.addItems(new_opts)
