@@ -125,7 +125,7 @@ EMA_DEVICES = [
 
     DeviceItem("OEA MVS1", "bvs1", DeviceType.DVF),
     DeviceItem("OEA MVS2", "bvs2", DeviceType.DVF),
-    DeviceItem("OEA MVS3", "bvs3", DeviceType.DVF),
+    DeviceItem("ESB MVS3", "bvs3", DeviceType.DVF),
 
     DeviceItem("Random value", "sim_rand", DeviceType.SIMULATED),
 
