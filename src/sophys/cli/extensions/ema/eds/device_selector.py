@@ -18,6 +18,7 @@ class DeviceType(IntFlag):
     READABLE = auto()
     SETTABLE = auto()
     DVF = auto()
+    OPTICAL_ELEMENTS = auto()
     SIMULATED = auto()
 
 
@@ -117,6 +118,10 @@ EMA_DEVICES = [
     DeviceItem("Interferometer - X", "ifmx", DeviceType.SETTABLE),
     DeviceItem("Interferometer - Z", "ifmz", DeviceType.SETTABLE),
 
+    DeviceItem("IVU Gap", "ivu_gap", DeviceType.OPTICAL_ELEMENTS),
+    DeviceItem("DCM Energy", "dcm_energy", DeviceType.OPTICAL_ELEMENTS),
+    DeviceItem("DCM Bragg Angle", "dcm_bragg", DeviceType.OPTICAL_ELEMENTS),
+
     DeviceItem("OEA MVS1", "bvs1", DeviceType.DVF),
     DeviceItem("OEA MVS2", "bvs2", DeviceType.DVF),
     DeviceItem("OEA MVS3", "bvs3", DeviceType.DVF),
@@ -159,6 +164,7 @@ class DeviceSelectorMainWindow(QMainWindow):
         readable_form = self._base_ui.counters_area.layout()
         settable_form = self._base_ui.generic_area.layout()
         dvf_form = self._base_ui.dvf_area.layout()
+        optical_elements_form = self._base_ui.optical_elements_area.layout()
         simulated_form = None
 
         if in_test_mode:
@@ -167,7 +173,13 @@ class DeviceSelectorMainWindow(QMainWindow):
             simulated_form = QGridLayout()
             simulated_page.setLayout(simulated_form)
 
-        self.populateDevices(readable_form, settable_form, dvf_form, simulated_form)
+        self.populateDevices(
+            readable_form,
+            settable_form,
+            dvf_form,
+            optical_elements_form,
+            simulated_form
+        )
 
         self.main_layout.addWidget(device_type_tab_widget)
 
@@ -197,9 +209,10 @@ class DeviceSelectorMainWindow(QMainWindow):
         readable_form: QGridLayout,
         settable_form: QGridLayout,
         dvf_form: QGridLayout,
+        optical_elements_form: QGridLayout,
         simulated_form: typing.Optional[QGridLayout] = None
     ):
-        for form in (readable_form, settable_form, dvf_form, simulated_form):
+        for form in (readable_form, settable_form, dvf_form, optical_elements_form, simulated_form):
             if form is None:
                 continue
 
@@ -259,6 +272,8 @@ class DeviceSelectorMainWindow(QMainWindow):
                 add_to_layout(item, settable_form)
             if item.type & DeviceType.DVF:
                 add_to_layout(item, dvf_form)
+            if item.type & DeviceType.OPTICAL_ELEMENTS:
+                add_to_layout(item, optical_elements_form)
             if item.type & DeviceType.SIMULATED and (simulated_form is not None):
                 add_to_layout(item, simulated_form)
 
