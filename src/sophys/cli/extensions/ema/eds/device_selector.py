@@ -96,6 +96,7 @@ __PILATUS_EXTRA_MNEMONICS = {
 
 EMA_DEVICES = [
     DeviceItem("Ring current", "rcurr", DeviceType.READABLE),
+    DeviceItem("Energy", "energy", DeviceType.READABLE),
 
     DeviceItem("I0", "i0c", DeviceType.READABLE),
     DeviceItem("I1", "i1c", DeviceType.READABLE),
