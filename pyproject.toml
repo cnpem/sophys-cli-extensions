@@ -30,8 +30,15 @@ ema = [
   "sophys-ema",
   "natsort==8.4.0"
 ]
+spe = [
+  "redis",
+  "qtpy",
+  "sophys-spe",
+  "natsort==8.4.0"
+]
+
 all = [
-  "sophys-cli-extensions[dev,ema]"
+  "sophys-cli-extensions[dev,ema,spe]"
 ]
 
 [tool.setuptools_scm]
