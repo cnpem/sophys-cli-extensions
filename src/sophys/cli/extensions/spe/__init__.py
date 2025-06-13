@@ -38,7 +38,7 @@ def load_ipython_extension(ipython):
         port = get_cli_envvar(HTTPSERVER_PORT_ENVVAR)
         setup_remote_session_handler(ipython, f"http://{host}:{port}")
     else:
-        plans = set(i[0].user_name for i in get_plans("test", PLAN_WHITELIST))
+        plans = set(i[0].user_name for i in get_plans("spe", PLAN_WHITELIST))
         add_to_namespace(NamespaceKeys.PLANS, plans, ipython=ipython)
 
 
