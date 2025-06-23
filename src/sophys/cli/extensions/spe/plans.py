@@ -19,7 +19,6 @@ class Plan_map_m1_m2_feasibility(PlanCLI):
 
     def create_parser(self):
         parser = super().create_parser()
-        parser.add_argument("-d", "--detector", nargs='+', required=True, help="Detector(s) to be used.")
         parser.add_argument("--m1_start", type=float, default=0.0, help="M1 pitch start position.")
         parser.add_argument("--m1_stop", type=float, default=0.0, help="M1 pitch stop position.")
         parser.add_argument("--m1_num", type=int, default=11, help="M1 pitch scan points.")
@@ -39,7 +38,7 @@ class Plan_map_m1_m2_feasibility(PlanCLI):
         m2_num = parsed_namespace.m2_num
         step = parsed_namespace.step
 
-        if self._mode_of_operation == "Local":
+        if self._mode_of_operation == ModeOfOperation.Local:
             return functools.partial(
                 self._plan,
                 detectors,
@@ -51,9 +50,9 @@ class Plan_map_m1_m2_feasibility(PlanCLI):
                 m2_num=m2_num,
                 step=step,
             )
-        elif self._mode_of_operation == "Remote":
+        elif self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(
-                "map_m1_m2_feasibility",
+                self._plan_name,
                 detectors,
                 m1_start=m1_start,
                 m1_stop=m1_stop,
