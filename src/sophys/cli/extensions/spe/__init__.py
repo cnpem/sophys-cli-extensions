@@ -8,6 +8,7 @@ from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanI
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
 
 from sophys.cli.core.magics.sample_plan_definitions import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from .plans import Plan_map_m1_m2_feasibility
 
 
 PLAN_WHITELIST = PlanWhitelist(*[
@@ -16,6 +17,7 @@ PLAN_WHITELIST = PlanWhitelist(*[
     PlanInformation("scan", "scan", PlanScan),
     PlanInformation("grid_scan", "grid_scan", PlanGridScan),
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
+    PlanInformation("map_m1_m2_feasibility", "map_m1_m2_feasibility", Plan_map_m1_m2_feasibility),
 ])
 
 
