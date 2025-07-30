@@ -65,6 +65,7 @@ def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], dat
         for info in plan_whitelist:
             needle = info.user_name + " "
             for line in lines:
+                line = line.strip()
                 if line.startswith(needle) or line.startswith("%" + needle):
                     return True, info
         return False, None
