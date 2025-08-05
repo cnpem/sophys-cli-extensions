@@ -74,7 +74,8 @@ def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], dat
     if not should_process:
         return lines
 
-    logger.debug(f"Processing lines: {'\n'.join(lines)}")
+    joined_lines = '\n'.join(lines)
+    logger.debug(f"Processing lines: {joined_lines}")
     processors = [
         functools.partial(add_detectors, source=data_source, plan_information=plan_information),
         functools.partial(add_metadata, source=data_source),
@@ -87,5 +88,6 @@ def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], dat
             line = p(line)
         new_lines.append(line)
 
-    logger.debug(f"Processed lines: {'\n'.join(new_lines)}")
+    joined_new_lines = '\n'.join(new_lines)
+    logger.debug(f"Processed lines: {joined_new_lines}")
     return new_lines
