@@ -111,6 +111,8 @@ EMA_DEVICES = [
     DeviceItem("MVS2", "mvs2", DeviceType.READABLE),
     DeviceItem("MVS3", "mvs3", DeviceType.READABLE),
 
+    DeviceItem("Eurotherm", "eu1_temp", DeviceType.READABLE),
+
     DeviceItem("Vortex"           , "xrf", DeviceType.READABLE, extra_mnemonics=__VORTEX_EXTRA_MNEMONICS),  # noqa: E203
     DeviceItem("Pimega 540D (S1)" , "ad2", DeviceType.READABLE, DeviceROIType.WITH_SEPARATE_AD_ROI),  # noqa: E203
     DeviceItem("Mobipix"          , "ad1", DeviceType.READABLE, DeviceROIType.WITH_SEPARATE_AD_ROI),  # noqa: E203
