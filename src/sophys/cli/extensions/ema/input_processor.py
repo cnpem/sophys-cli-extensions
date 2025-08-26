@@ -14,7 +14,7 @@ def add_detectors(line: str, source: DataSource, plan_information: typing.Option
 
     plan_name, _, args = line.partition(' ')
     detectors_str = " ".join(source.get(DataSource.DataType.DETECTORS))
-    return f"{line.strip()} -d {detectors_str}"
+    return f"{line.rstrip()} -d {detectors_str}"
 
 
 def add_metadata(line: str, source: DataSource):
@@ -38,7 +38,7 @@ def add_metadata(line: str, source: DataSource):
     if len(md) == 0:
         return line
 
-    return f"{line.strip()} --md {md.strip()}"
+    return f"{line.rstrip()} --md {md.strip()}"
 
 
 def add_plan_target(line: str, source: DataSource):
@@ -54,36 +54,37 @@ def add_plan_target(line: str, source: DataSource):
         # When with a single detector selected, use it as the target by default.
         targets = detectors
     target = targets[0].strip()
-    return f"{line.strip()} --plan_target {target} --md MAIN_COUNTER={target}"
+    return f"{line.rstrip()} --plan_target {target} --md MAIN_COUNTER={target}"
 
 
 def input_processor(lines: list[str], plan_whitelist: list[PlanInformation], data_source: DataSource):
     """Process 'lines' to create a valid scan call."""
     logger = logging.getLogger("sophys_cli.ema.input_processor")
 
-    def test_should_process():
+    def test_should_process(line):
+        line = line.strip()
         for info in plan_whitelist:
             needle = info.user_name + " "
-            for line in lines:
-                line = line.strip()
-                if line.startswith(needle) or line.startswith("%" + needle):
-                    return True, info
+            if line.startswith(needle) or line.startswith("%" + needle):
+                return True, info
         return False, None
-
-    should_process, plan_information = test_should_process()
-    if not should_process:
-        return lines
 
     joined_lines = '\n'.join(lines)
     logger.debug(f"Processing lines: {joined_lines}")
-    processors = [
-        functools.partial(add_detectors, source=data_source, plan_information=plan_information),
-        functools.partial(add_metadata, source=data_source),
-        functools.partial(add_plan_target, source=data_source),
-    ]
 
     new_lines = []
     for line in lines:
+        should_process, plan_information = test_should_process(line)
+        if not should_process:
+            new_lines.append(line)
+            continue
+
+        processors = [
+            functools.partial(add_detectors, source=data_source, plan_information=plan_information),
+            functools.partial(add_metadata, source=data_source),
+            functools.partial(add_plan_target, source=data_source),
+        ]
+
         for p in processors:
             line = p(line)
         new_lines.append(line)
