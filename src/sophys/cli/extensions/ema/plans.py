@@ -725,62 +725,63 @@ rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
 """
 
 
+class EScanRangeAction(argparse.Action):
+    """
+    Custom argparse Action to parse energy and k-space ranges.
+
+    This action deals with 2 and 3-element k-space range specifications,
+    and maintains the range ordering in the populated tuples. This means
+    that it provides support for later stages to calculate missing start
+    positions (None as the start position), based on the last sequential
+    range provided by the user.
+
+    It populates the namespace with two keys, 'e' and 'k', each being a
+    list of tuples of the form:
+        (range index, start position (can be None), end position, step)
+    """
+
+    def __call__(self, parser, namespace, values, option_string):
+        if not hasattr(namespace, "_current_range_index"):
+            namespace._current_range_index = 0
+
+        match option_string:
+            case "-e":
+                if namespace.e is None:
+                    namespace.e = []
+
+                n_values = len(values)
+                if n_values == 3:
+                    namespace.e.append(tuple([namespace._current_range_index, *values]))
+                else:
+                    raise Exception(f"Can only specify an energy range with 3 values, not {n_values}.")
+
+            case "-k":
+                if namespace.k is None:
+                    namespace.k = []
+
+                n_values = len(values)
+                if n_values == 2:
+                    if namespace._current_range_index == 0:
+                        raise Exception("You need to specify a range with a start position before specifying one without.")
+                    namespace.k.append(tuple([namespace._current_range_index, None, *values]))
+                elif n_values == 3:
+                    namespace.k.append(tuple([namespace._current_range_index, *values]))
+                else:
+                    raise Exception(f"Can only specify a k-space range with 2 ou 3 values, not {n_values}.")
+
+        namespace._current_range_index += 1
+
+
 class PlanEScan(BaseScanCLI):
-    class RangeAction(argparse.Action):
-        """
-        Custom argparse Action to parse energy and k-space ranges.
-
-        This action deals with 2 and 3-element k-space range specifications,
-        and maintains the range ordering in the populated tuples. This means
-        that it provides support for later stages to calculate missing start
-        positions (None as the start position), based on the last sequential
-        range provided by the user.
-
-        It populates the namespace with two keys, 'e' and 'k', each being a
-        list of tuples of the form:
-            (range index, start position (can be None), end position, step)
-        """
-
-        def __call__(self, parser, namespace, values, option_string):
-            if not hasattr(namespace, "_current_range_index"):
-                namespace._current_range_index = 0
-
-            match option_string:
-                case "-e":
-                    if namespace.e is None:
-                        namespace.e = []
-
-                    n_values = len(values)
-                    if n_values == 3:
-                        namespace.e.append(tuple([namespace._current_range_index, *values]))
-                    else:
-                        raise Exception(f"Can only specify an energy range with 3 values, not {n_values}.")
-
-                case "-k":
-                    if namespace.k is None:
-                        namespace.k = []
-
-                    n_values = len(values)
-                    if n_values == 2:
-                        if namespace._current_range_index == 0:
-                            raise Exception("You need to specify a range with a start position before specifying one without.")
-                        namespace.k.append(tuple([namespace._current_range_index, None, *values]))
-                    elif n_values == 3:
-                        namespace.k.append(tuple([namespace._current_range_index, *values]))
-                    else:
-                        raise Exception(f"Can only specify a k-space range with 2 ou 3 values, not {n_values}.")
-
-            namespace._current_range_index += 1
-
     def _usage(self):
         return "%(prog)s [-e start stop step] [-r energy] [-k [start] stop step] [-e0 initial_energy] [-t acquisition_time] [-st settling_time]"
 
     def create_parser(self):
         _a = super().create_parser()
 
-        _a.add_argument("-e", nargs="+", type=float, action=self.RangeAction, help="Specify an energy range (in eV), with a step size (in eV).")
+        _a.add_argument("-e", nargs="+", type=float, action=EScanRangeAction, help="Specify an energy range (in eV), with a step size (in eV).")
         _a.add_argument("-r", "--relative_to", type=float, default=0, help="Calculate all energies relative to this one, in eV.")
-        _a.add_argument("-k", nargs="+", type=float, action=self.RangeAction, help="Specify a K-space range (start stop step_size).")
+        _a.add_argument("-k", nargs="+", type=float, action=EScanRangeAction, help="Specify a K-space range (start stop step_size).")
 
         _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in eV.")
 
@@ -833,6 +834,62 @@ class PlanEScan(BaseScanCLI):
             return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
         if self._mode_of_operation == ModeOfOperation.Remote:
             return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+
+
+class PlanEScanFly(BaseScanCLI):
+    def _usage(self):
+        return "%(prog)s [-e start stop velocity] [-r energy] [-t acquisition_time] [-st settling_time]"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("-e", nargs="+", type=float, action=EScanRangeAction, help="Specify an energy range (in eV), with a velocity (in eV/s).")
+        _a.add_argument("-r", "--relative_to", type=float, default=0, help="Calculate all energies relative to this one, in eV.")
+
+        _a.add_argument("-st", "--settling_time", type=int, default=250, help="Time (ms) to wait after DCM movement for settling. Default: 250ms")
+        _a.add_argument("-t", "--acquisition_time", type=int, default=1000, help="Time (ms) for each acquisition pulse. Default: 1000ms")
+
+        _a.add_argument("--no-use-undulator", action="store_true", help="Don't change undulator parameters in this plan.")
+        _a.add_argument("--no-use-crio01", action="store_true", help="Don't change or trigger CRIO01 parameters in this plan.")
+        _a.add_argument("--no-use-crio02", action="store_true", help="Don't change or trigger CRIO02 parameters in this plan.")
+
+        return _a
+
+    def _create_plan(self, parsed_namespace, local_ns):
+        if len(parsed_namespace.detectors) == 0:
+            parsed_namespace.detectors = ["i0c", "i1c"]
+        parsed_namespace.detectors.extend(["dcm_energy"])
+        use_vortex = any("xrf" in det for det in parsed_namespace.detectors)
+
+        detectors = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+
+        energy_ranges = parsed_namespace.e
+        if energy_ranges is None:
+            energy_ranges = []
+
+        r = parsed_namespace.relative_to
+        energy_ranges = [(idx, x + r, y + r, v) for idx, x, y, v in energy_ranges]
+
+        settle_time = parsed_namespace.settling_time
+        acq_time = parsed_namespace.acquisition_time
+
+        use_undulator = not parsed_namespace.no_use_undulator
+        use_crio01 = not parsed_namespace.no_use_crio01
+        use_crio02 = not parsed_namespace.no_use_crio02
+
+        md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = os.getcwd()
+
+        # Assonant metadata
+        md["experimental_technique"] = "XAS"
+        md["experiment_stage"] = "sample_acquisition"
+
+        if self._mode_of_operation == ModeOfOperation.Local:
+            return functools.partial(self._plan, detectors, energy_ranges, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+        if self._mode_of_operation == ModeOfOperation.Remote:
+            return BPlan(self._plan_name, detectors, energy_ranges, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
 
 
 class PlanMoveEnergy(PlanCLI):
