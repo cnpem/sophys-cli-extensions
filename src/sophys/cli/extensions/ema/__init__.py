@@ -14,7 +14,7 @@ from sophys.cli.core.persistent_metadata import PersistentMetadata
 from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, get_from_namespace, add_to_namespace, get_color
 
 from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanInformation, PlanWhitelist, ExceptionHandlerReturnValue
-from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics
+from sophys.cli.core.magics.tools_magics import KBLMagics, SophysLiveViewMagics, HTTPMagics, MiscMagics
 
 from sophys.cli.core.magics.sample_plan_definitions import PlanReadMany, PlanCount
 
@@ -284,9 +284,11 @@ def load_ipython_extension(ipython):
     ipython.register_magics(MiscMagics)
     ipython.register_magics(UtilityMagics)
     ipython.register_magics(KBLMagics)
+    ipython.register_magics(SophysLiveViewMagics)
     setup_input_transformer(ipython, plan_whitelist, test_mode)
 
     KBLMagics.extra_arguments = ["--stats-widget-on-by-default"]
+    SophysLiveViewMagics.extra_arguments = ["--show-stats-by-default"]
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
