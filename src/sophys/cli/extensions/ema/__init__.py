@@ -289,7 +289,7 @@ def load_ipython_extension(ipython):
     setup_input_transformer(ipython, plan_whitelist, test_mode)
 
     KBLMagics.extra_arguments = ["--stats-widget-on-by-default"]
-    SophysLiveViewMagics.extra_arguments = ["--show-stats-by-default"]
+    SophysLiveViewMagics.extra_arguments = ["--show-stats-by-default", "--hour-offset", "1"]
 
     if not local_mode:
         ipython.register_magics(HTTPMagics)
