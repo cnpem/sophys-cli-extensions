@@ -134,29 +134,29 @@ def test_ascan(ip_with_plans, mock_datetime, capsys):
     ip_with_plans.run_magic("ascan", "sim -1 1 10")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
-    assert plan_data[3] == 10  # num
-    assert plan_data[4] is None  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("ascan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0)  # *args
+    assert plan_data[2]["number_of_steps"] == 10
+    assert plan_data[2]["exposure_time"] is None
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("ascan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("ascan", "sim -1 1 10 0.1")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
-    assert plan_data[3] == 10  # num
-    assert plan_data[4] == 0.1  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("ascan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0)  # *args
+    assert plan_data[2]["number_of_steps"] == 10
+    assert plan_data[2]["exposure_time"] == 0.1
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("ascan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("ascan", "sim -1 1 sim2 -2 1.5 15 0.25")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0, "sim2", -2, 1.5]  # *args
-    assert plan_data[3] == 15  # num
-    assert plan_data[4] == 0.25  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("ascan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0, "sim2", -2, 1.5)  # *args
+    assert plan_data[2]["number_of_steps"] == 15
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("ascan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
 
 def test_rscan(ip_with_plans, mock_datetime, capsys):
@@ -168,29 +168,29 @@ def test_rscan(ip_with_plans, mock_datetime, capsys):
     ip_with_plans.run_magic("rscan", "sim -1 1 10")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
-    assert plan_data[3] == 10  # num
-    assert plan_data[4] is None  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0)  # *args
+    assert plan_data[2]["number_of_steps"] == 10
+    assert plan_data[2]["exposure_time"] is None
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("rscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("rscan", "sim -1 1 10 0.1")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0]  # *args
-    assert plan_data[3] == 10  # num
-    assert plan_data[4] == 0.1  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0)  # *args
+    assert plan_data[2]["number_of_steps"] == 10
+    assert plan_data[2]["exposure_time"] == 0.1
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("rscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("rscan", "sim -1 1 sim2 -2 1.5 15 0.25")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim", -1.0, 1.0, "sim2", -2, 1.5]  # *args
-    assert plan_data[3] == 15  # num
-    assert plan_data[4] == 0.25  # exposure time
-    assert plan_data[6] == mock_datetime.strftime("rscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim", -1.0, 1.0, "sim2", -2, 1.5)  # *args
+    assert plan_data[2]["number_of_steps"] == 15
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("rscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
 
 def test_abs_grid_scan(ip_with_plans, mock_datetime, capsys):
@@ -202,29 +202,29 @@ def test_abs_grid_scan(ip_with_plans, mock_datetime, capsys):
     ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] is None  # exposure time
-    assert plan_data[4] is False  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] is None
+    assert plan_data[2]["snake_axes"] is False
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] == 0.25  # exposure time
-    assert plan_data[4] is False  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["snake_axes"] is False
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25 -s")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] == 0.25  # exposure time
-    assert plan_data[4] is True  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["snake_axes"] is True
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
 
 def test_rel_grid_scan(ip_with_plans, mock_datetime, capsys):
@@ -236,29 +236,29 @@ def test_rel_grid_scan(ip_with_plans, mock_datetime, capsys):
     ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] is None  # exposure time
-    assert plan_data[4] is False  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] is None
+    assert plan_data[2]["snake_axes"] is False
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] == 0.25  # exposure time
-    assert plan_data[4] is False  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["snake_axes"] is False
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
     ip_with_plans.run_magic("rel_grid_scan", "sim1 -1 1 10 sim2 -0.5 0.5 10 0.25 -s")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[2] == ["sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10]  # *args
-    assert plan_data[3] == 0.25  # exposure time
-    assert plan_data[4] is True  # snake axes
-    assert plan_data[6] == mock_datetime.strftime("gridscan_%H_%M_%S")  # hdf_file_name
-    assert plan_data[7] == os.getcwd()  # hdf_file_path
+    assert plan_data[1][1:] == ("sim1", -1.0, 1.0, 10, "sim2", -0.5, 0.5, 10)  # *args
+    assert plan_data[2]["exposure_time"] == 0.25
+    assert plan_data[2]["snake_axes"] is True
+    assert plan_data[2]["hdf_file_name"] == mock_datetime.strftime("gridscan_%H_%M_%S")
+    assert plan_data[2]["hdf_file_path"] == os.getcwd()
 
 
 def test_mov(ip_with_plans, mock_datetime, capsys):
@@ -270,19 +270,19 @@ def test_mov(ip_with_plans, mock_datetime, capsys):
     ip_with_plans.run_magic("mov", "sim 0.1")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[1] == ["sim", 0.1]
-    assert plan_data[4] == 0
+    assert plan_data[1] == ("sim", 0.1)
+    assert plan_data[2]["use_old_data"] == 0
 
     ip_with_plans.run_magic("mov", "sim1 1 sim2 2.3")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[1] == ["sim1", 1, "sim2", 2.3]
-    assert plan_data[4] == 0
+    assert plan_data[1] == ("sim1", 1, "sim2", 2.3)
+    assert plan_data[2]["use_old_data"] == 0
 
     ip_with_plans.run_magic("mov", "sim1 sim2 --max --plan_target sim_det")
 
     plan_data = get_from_namespace(NamespaceKeys.TEST_DATA, ipython=ip_with_plans)
-    assert plan_data[1] == ["sim1", "sim2"]
-    assert plan_data[2] == "sim_det"
-    assert plan_data[3] == "max"
-    assert plan_data[4] == -1
+    assert plan_data[1] == ("sim1", "sim2")
+    assert plan_data[2]["target"] == "sim_det"
+    assert plan_data[2]["behavior"] == "max"
+    assert plan_data[2]["use_old_data"] == -1

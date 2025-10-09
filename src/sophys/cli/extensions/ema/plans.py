@@ -100,7 +100,7 @@ class PlanNDScan(BaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
 
         nargs = len(parsed_namespace.args)
@@ -125,12 +125,9 @@ class PlanNDScan(BaseScanCLI):
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
         after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, number_of_steps=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, number_of_steps=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
-        if self._mode_of_operation == ModeOfOperation.Test:
-            return (self._plan, detector, args, num, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
+        plan_args = (detector, *args)
+        plan_kwargs = dict(number_of_steps=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        return plan_args, plan_kwargs
 
 
 class PlanNDListScan(BaseScanCLI):
@@ -222,7 +219,7 @@ class PlanNDListScan(BaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
         args, _, motors = self.parse_varargs(parsed_namespace.args, local_ns)
 
@@ -239,12 +236,9 @@ class PlanNDListScan(BaseScanCLI):
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
         after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
-        if self._mode_of_operation == ModeOfOperation.Test:
-            return (self._plan, detector, args, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
+        plan_args = (detector, *args)
+        plan_kwargs = dict(exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+        return plan_args, plan_kwargs
 
 
 class PlanGridScan(BaseScanCLI):
@@ -269,7 +263,7 @@ class PlanGridScan(BaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
         args = [
             parsed_namespace.first_motor[0],
@@ -296,12 +290,9 @@ class PlanGridScan(BaseScanCLI):
         after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
         after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target, using_steps_instead_of_points=True)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target, using_steps_instead_of_points=True)
-        if self._mode_of_operation == ModeOfOperation.Test:
-            return (self._plan, detector, args, exp_time, snake, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
+        plan_args = (detector, *args)
+        plan_kwargs = dict(exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target, using_steps_instead_of_points=True)
+        return plan_args, plan_kwargs
 
 
 class PlanGridScanWithJitter(BaseScanCLI):
@@ -407,16 +398,13 @@ class PlanMotorOrigin(PlanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         motor = self.get_real_devices_if_needed(parsed_namespace.motor, local_ns)[0]
         position = parsed_namespace.position
 
         md = self.parse_md(parsed_namespace.motor[0], ns=parsed_namespace)
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, motor, position, md=md)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, motor, position, md=md)
+        return (motor, position), {"md": md}
 
 
 class PlanCT(PlanCLI, _HDFBaseScanCLI):
@@ -433,7 +421,7 @@ class PlanCT(PlanCLI, _HDFBaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         detector = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
         md = self.parse_md(*parsed_namespace.detectors, ns=parsed_namespace)
 
@@ -445,10 +433,8 @@ class PlanCT(PlanCLI, _HDFBaseScanCLI):
         if "metadata_save_file_location" not in md:
             md["metadata_save_file_location"] = hdf_file_path
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+        plan_kwargs = dict(number_of_points=number_of_points, exposure_time=exposure_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path)
+        return (detector,), plan_kwargs
 
 
 class PlanMV(PlanCLI, _BeforeBaseScanCLI):
@@ -463,7 +449,7 @@ class PlanMV(PlanCLI, _BeforeBaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         args, _, motors = self.parse_varargs(parsed_namespace.args, local_ns)
 
         md = self.parse_md(*motors, ns=parsed_namespace)
@@ -475,12 +461,8 @@ class PlanMV(PlanCLI, _BeforeBaseScanCLI):
         if before_plan_behavior is not None:
             data_index = -1
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, *args, target=before_plan_target, behavior=before_plan_behavior, use_old_data=data_index, md=md)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan.__name__, *args, target=before_plan_target, behavior=before_plan_behavior, use_old_data=data_index, md=md)
-        if self._mode_of_operation == ModeOfOperation.Test:
-            return (self._plan, args, before_plan_target, before_plan_behavior, data_index, md)
+        plan_kwargs = dict(target=before_plan_target, behavior=before_plan_behavior, use_old_data=data_index, md=md)
+        return (*args,), plan_kwargs
 
 
 class PlanAbsNDScan(PlanNDScan):
@@ -830,10 +812,9 @@ class PlanEScan(BaseScanCLI):
         md["experimental_technique"] = "XAS"
         md["experiment_stage"] = "sample_acquisition"
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detectors, energy_ranges, k_ranges, initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+        plan_args = (detectors, energy_ranges, k_ranges)
+        plan_kwargs = dict(initial_energy=initial_energy, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+        return plan_args, plan_kwargs
 
 
 class PlanEScanFly(BaseScanCLI):
@@ -886,10 +867,9 @@ class PlanEScanFly(BaseScanCLI):
         md["experimental_technique"] = "XAS"
         md["experiment_stage"] = "sample_acquisition"
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detectors, energy_ranges, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detectors, energy_ranges, md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+        plan_args = (detectors, energy_ranges)
+        plan_kwargs = dict(md=md, settling_time=settle_time, acquisition_time=acq_time, use_undulator=use_undulator, use_crio01=use_crio01, use_crio02=use_crio02, use_vortex=use_vortex)
+        return plan_args, plan_kwargs
 
 
 class PlanMoveEnergy(PlanCLI):
@@ -908,7 +888,4 @@ class PlanMoveEnergy(PlanCLI):
 
         md = self.parse_md(ns=parsed_namespace)
 
-        if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, energy, md=md)
-        if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan.__name__, energy, md=md)
+        return (energy,), {"md": md}
