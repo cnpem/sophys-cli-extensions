@@ -95,7 +95,7 @@ class PlanNDScan(BaseScanCLI):
 
         _a.add_argument("args", nargs='+', type=str, help="Motor informations, in order (mnemonic start_position end_position)")
         # NOTE: These two are not used in parsing, they're only here for documentation. Their values are taken from args instead.
-        _a.add_argument("num", type=int, nargs='?', default=None, help="Number of points between the start and end positions.")
+        _a.add_argument("num", type=int, nargs='?', default=None, help="Number of steps between the start and end positions.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
 
         return _a
@@ -126,9 +126,9 @@ class PlanNDScan(BaseScanCLI):
         after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+            return functools.partial(self._plan, detector, *args, number_of_steps=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, number_of_points=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+            return BPlan(self._plan_name, detector, *args, number_of_steps=num, exposure_time=exp_time, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
         if self._mode_of_operation == ModeOfOperation.Test:
             return (self._plan, detector, args, num, exp_time, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
 
@@ -259,11 +259,11 @@ class PlanGridScan(BaseScanCLI):
         _a.add_argument("first_motor", nargs=1, type=str, help="Mnemonic of the motor on the slowest axis to move.")
         _a.add_argument("first_start", type=float, help="Start position of the first motor, in the motor's EGU.")
         _a.add_argument("first_stop", type=float, help="End position of the first motor, in the motor's EGU.")
-        _a.add_argument("first_num", type=int, help="Number of points between the start and end positions of the first motor.")
+        _a.add_argument("first_num", type=int, help="Number of steps between the start and end positions of the first motor.")
         _a.add_argument("second_motor", nargs=1, type=str, help="Mnemonic of the motor on the second slowest axis to move.")
         _a.add_argument("second_start", type=float, help="Start position of the second motor, in the motor's EGU.")
         _a.add_argument("second_stop", type=float, help="End position of the second motor, in the motor's EGU.")
-        _a.add_argument("second_num", type=int, help="Number of points between the start and end positions of the second motor.")
+        _a.add_argument("second_num", type=int, help="Number of steps between the start and end positions of the second motor.")
         _a.add_argument("exposure_time", type=float, nargs='?', default=None, help="Per-point exposure time of the detector. Defaults to using the previously defined exposure time on the IOC.")
         _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
 
@@ -297,9 +297,9 @@ class PlanGridScan(BaseScanCLI):
         after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
 
         if self._mode_of_operation == ModeOfOperation.Local:
-            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+            return functools.partial(self._plan, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target, using_steps_instead_of_points=True)
         if self._mode_of_operation == ModeOfOperation.Remote:
-            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target)
+            return BPlan(self._plan_name, detector, *args, exposure_time=exp_time, snake_axes=snake, md=md, hdf_file_name=hdf_file_name, hdf_file_path=hdf_file_path, absolute=self.absolute, after_plan_behavior=after_plan_behavior, after_plan_target=after_plan_target, using_steps_instead_of_points=True)
         if self._mode_of_operation == ModeOfOperation.Test:
             return (self._plan, detector, args, exp_time, snake, md, hdf_file_name, hdf_file_path, self.absolute, after_plan_behavior, after_plan_target)
 
@@ -491,8 +491,8 @@ class PlanAbsNDScan(PlanNDScan):
 
 Example usages:
 
-ascan ms2r 0.488 0.49 6
-    Make a 1D scan over 6 points on the 'ms2r' motor, from point 0.488 to point 0.49,
+ascan ms2r 0.488 0.49 5
+    Make a 1D scan over 5 steps on the 'ms2r' motor, from point 0.488 to point 0.49,
     in absolute coordinates:
 
     | scan point | scan point | scan point | scan point | scan point | scan point |
@@ -502,8 +502,8 @@ ascan ms2r 0.488 0.49 6
 
     The exposure time used is the one set before the scan on the IOC.
 
-ascan wst 0.0 0.4 5 0.1
-    Make a 1D scan over 5 points on the 'wst' motor, from point 0.0 to point 0.4,
+ascan wst 0.0 0.4 4 0.1
+    Make a 1D scan over 4 steps on the 'wst' motor, from point 0.0 to point 0.4,
     in absolute coordinates, with exposure time per-point equal to 0.1 seconds:
 
     | scan point | scan point | scan point | scan point | scan point |
@@ -511,8 +511,8 @@ ascan wst 0.0 0.4 5 0.1
          0.0          0.1          0.2          0.3          0.4
                            wst position (abs)
 
-ascan ms2r 0.488 0.49 wst 0.0 0.4 5 0.1
-    Make a 2D scan over 5 points on the 'ms2r' and 'wst' motors, in absolute coordinates,
+ascan ms2r 0.488 0.49 wst 0.0 0.4 4 0.1
+    Make a 2D scan over 4 steps on the 'ms2r' and 'wst' motors, in absolute coordinates,
     with exposure time per-point equal to 0.1 seconds, and moving at the same time:
 
     |                     ms2r position (abs)                        |
@@ -531,8 +531,8 @@ class PlanRelNDScan(PlanNDScan):
 
 Example usages:
 
-rscan ms2r 0.488 0.49 6
-    Make a 1D scan over 6 points on the 'ms2r' motor, from point 0.488 to point 0.49,
+rscan ms2r 0.488 0.49 5
+    Make a 1D scan over 5 steps on the 'ms2r' motor, from point 0.488 to point 0.49,
     relative to the current position:
 
     | scan point | scan point | scan point | scan point | scan point | scan point |
@@ -542,8 +542,8 @@ rscan ms2r 0.488 0.49 6
 
     The exposure time used is the one set before the scan on the IOC.
 
-rscan wst 0.0 0.4 5 0.1
-    Make a 1D scan over 5 points on the 'wst' motor, from point 0.0 to point 0.4,
+rscan wst 0.0 0.4 4 0.1
+    Make a 1D scan over 4 steps on the 'wst' motor, from point 0.0 to point 0.4,
     relative to the current position, with exposure time per-point equal to 0.1 seconds:
 
     | scan point | scan point | scan point | scan point | scan point |
@@ -551,8 +551,8 @@ rscan wst 0.0 0.4 5 0.1
          0.0          0.1          0.2          0.3          0.4
                             wst position (rel)
 
-rscan ms2r 0.488 0.49 wst 0.0 0.4 5 0.1
-    Make a 2D scan over 5 points on the 'ms2r' and 'wst' motors, relative to the current position,
+rscan ms2r 0.488 0.49 wst 0.0 0.4 4 0.1
+    Make a 2D scan over 4 steps on the 'ms2r' and 'wst' motors, relative to the current position,
     with exposure time per-point equal to 0.1 seconds, and moving at the same time:
 
     |                     ms2r position (rel)                        |
@@ -649,9 +649,9 @@ class PlanAbsGridScan(PlanGridScan):
 
 Example usages:
 
-grid_scan ms2l 0.49 0.494 3 ms2r 0.488 0.49 3
-    Make a 2D scan over 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, in absolute coordinates,
-    and 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, without snaking, with the 'ms2l' axis changing the slowest:
+grid_scan ms2l 0.49 0.494 2 ms2r 0.488 0.49 2
+    Make a 2D scan over 2 csteps on the 'ms2l' motor, from point 0.49 to point 0.494, in absolute coordinates,
+    and 2 steps on the 'ms2r' motor, from point 0.488 to point 0.49, without snaking, with the 'ms2l' axis changing the slowest:
 
                         |--------------------------------------|
               0.490     |-----x----->------x------>-----x------|
@@ -665,9 +665,9 @@ grid_scan ms2l 0.49 0.494 3 ms2r 0.488 0.49 3
 
     The exposure time used is the one set before the scan on the IOC.
 
-grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
-    Make a 2D scan over 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, in absolute coordinates,
-    and 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, with snaking, with the 'ms2r' axis changing
+grid_scan ms2r 0.488 0.49 2 ms2l 0.49 0.494 2 0.1 -s
+    Make a 2D scan over 2 steps on the 'ms2r' motor, from point 0.488 to point 0.49, in absolute coordinates,
+    and 2 steps on the 'ms2l' motor, from point 0.49 to point 0.494, with snaking, with the 'ms2r' axis changing
     the slowest, and per-point exposure time equal to 0.1 seconds:
 
                         |--------------------------------|
@@ -691,9 +691,9 @@ class PlanRelGridScan(PlanGridScan):
 
 Example usages:
 
-rel_grid_scan ms2l 0.49 0.494 3 ms2r 0.488 0.49 3
-    Make a 2D scan over 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, relative to its current position,
-    and 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, without snaking, with the 'ms2l' axis changing the slowest:
+rel_grid_scan ms2l 0.49 0.494 2 ms2r 0.488 0.49 2
+    Make a 2D scan over 2 steps on the 'ms2l' motor, from point 0.49 to point 0.494, relative to its current position,
+    and 2 steps on the 'ms2r' motor, from point 0.488 to point 0.49, without snaking, with the 'ms2l' axis changing the slowest:
 
                         |--------------------------------------|
               0.490     |-----x----->------x------>-----x------|
@@ -707,9 +707,9 @@ rel_grid_scan ms2l 0.49 0.494 3 ms2r 0.488 0.49 3
 
     The exposure time used is the one set before the scan on the IOC.
 
-rel_grid_scan ms2r 0.488 0.49 3 ms2l 0.49 0.494 3 0.1 -s
-    Make a 2D scan over 3 points on the 'ms2r' motor, from point 0.488 to point 0.49, relative to its current position,
-    and 3 points on the 'ms2l' motor, from point 0.49 to point 0.494, with snaking, with the 'ms2r' axis changing
+rel_grid_scan ms2r 0.488 0.49 2 ms2l 0.49 0.494 2 0.1 -s
+    Make a 2D scan over 2 steps on the 'ms2r' motor, from point 0.488 to point 0.49, relative to its current position,
+    and 2 steps on the 'ms2l' motor, from point 0.49 to point 0.494, with snaking, with the 'ms2r' axis changing
     the slowest, and per-point exposure time equal to 0.1 seconds:
 
                         |--------------------------------|
