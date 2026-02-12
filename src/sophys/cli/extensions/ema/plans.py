@@ -982,7 +982,6 @@ class PlanGridEnergyScan(BaseScanCLI):
             absolute=self.absolute,
             after_plan_behavior=after_plan_behavior,
             after_plan_target=after_plan_target,
-            using_steps_instead_of_points=False,
             energy_ranges=energy_ranges,
             k_ranges=k_ranges,
             initial_energy=initial_energy,
