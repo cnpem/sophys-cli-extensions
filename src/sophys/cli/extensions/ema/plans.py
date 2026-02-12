@@ -776,7 +776,7 @@ class PlanEScan(BaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         if len(parsed_namespace.detectors) == 0:
             parsed_namespace.detectors = ["i0c", "i1c"]
         parsed_namespace.detectors.extend(["dcm_energy"])
@@ -836,7 +836,7 @@ class PlanEScanFly(BaseScanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         if len(parsed_namespace.detectors) == 0:
             parsed_namespace.detectors = ["i0c", "i1c"]
         parsed_namespace.detectors.extend(["dcm_energy"])
@@ -883,7 +883,7 @@ class PlanMoveEnergy(PlanCLI):
 
         return _a
 
-    def _create_plan(self, parsed_namespace, local_ns):
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
         energy = parsed_namespace.energy
 
         md = self.parse_md(ns=parsed_namespace)
