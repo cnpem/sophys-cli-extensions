@@ -889,3 +889,118 @@ class PlanMoveEnergy(PlanCLI):
         md = self.parse_md(ns=parsed_namespace)
 
         return (energy,), {"md": md}
+
+
+class PlanGridEnergyScan(BaseScanCLI):
+    absolute: bool
+
+    def _usage(self):
+        return "%(prog)s motor start stop num motor start stop num [-s/--snake] [-e start stop step] [-r energy] [-k [start] stop step] [-e0 initial_energy] [-t acquisition_time] [-st settling_time]"
+
+    def create_parser(self):
+        _a = super().create_parser()
+
+        _a.add_argument("first_motor", nargs=1, type=str, help="Mnemonic of the motor on the slowest axis to move.")
+        _a.add_argument("first_start", type=float, help="Start position of the first motor, in the motor's EGU.")
+        _a.add_argument("first_stop", type=float, help="End position of the first motor, in the motor's EGU.")
+        _a.add_argument("first_num", type=int, help="Number of steps between the start and end positions of the first motor.")
+        _a.add_argument("second_motor", nargs=1, type=str, help="Mnemonic of the motor on the second slowest axis to move.")
+        _a.add_argument("second_start", type=float, help="Start position of the second motor, in the motor's EGU.")
+        _a.add_argument("second_stop", type=float, help="End position of the second motor, in the motor's EGU.")
+        _a.add_argument("second_num", type=int, help="Number of steps between the start and end positions of the second motor.")
+        _a.add_argument("-s", "--snake", action="store_true", help="Whether to snake axes or not. The default behavior is to not snake.")
+
+        _a.add_argument("-e", nargs="+", type=float, action=EScanRangeAction, help="Specify an energy range (in eV), with a step size (in eV).")
+        _a.add_argument("-r", "--relative_to", type=float, default=0, help="Calculate all energies relative to this one, in eV.")
+        _a.add_argument("-k", nargs="+", type=float, action=EScanRangeAction, help="Specify a K-space range (start stop step_size).")
+
+        _a.add_argument("-e0", "--initial_energy", type=float, help="Initial energy value, in eV.")
+
+        _a.add_argument("-st", "--settling_time", type=int, default=250, help="Time (ms) to wait after DCM movement for settling. Default: 250ms")
+        _a.add_argument("-t", "--acquisition_time", type=int, default=1000, help="Time (ms) for each acquisition pulse. Default: 1000ms")
+
+        _a.add_argument("--no-use-undulator", action="store_true", help="Don't change undulator parameters in this plan.")
+        _a.add_argument("--no-use-crio01", action="store_true", help="Don't change or trigger CRIO01 parameters in this plan.")
+        _a.add_argument("--no-use-crio02", action="store_true", help="Don't change or trigger CRIO02 parameters in this plan.")
+
+        return _a
+
+    def _create_plan_arguments(self, parsed_namespace, local_ns):
+        parsed_namespace.detectors.extend(["dcm_energy"])
+        use_vortex = any("xrf" in det for det in parsed_namespace.detectors)
+
+        detectors = self.get_real_devices_if_needed(parsed_namespace.detectors, local_ns)
+
+        args = [
+            parsed_namespace.first_motor[0],
+            parsed_namespace.first_start,
+            parsed_namespace.first_stop,
+            parsed_namespace.first_num,
+            parsed_namespace.second_motor[0],
+            parsed_namespace.second_start,
+            parsed_namespace.second_stop,
+            parsed_namespace.second_num,
+        ]
+        args, _, motor_names = self.parse_varargs(args, local_ns=local_ns)
+
+        snake = parsed_namespace.snake
+
+        energy_ranges = parsed_namespace.e
+        if energy_ranges is None:
+            energy_ranges = []
+        k_ranges = parsed_namespace.k
+        if k_ranges is None:
+            k_ranges = []
+
+        r = parsed_namespace.relative_to
+        energy_ranges = [(idx, x + r, y + r, s) for idx, x, y, s in energy_ranges]
+
+        initial_energy = parsed_namespace.initial_energy
+
+        settle_time = parsed_namespace.settling_time
+        acq_time = parsed_namespace.acquisition_time
+
+        use_undulator = not parsed_namespace.no_use_undulator
+        use_crio01 = not parsed_namespace.no_use_crio01
+        use_crio02 = not parsed_namespace.no_use_crio02
+
+        md = self.parse_md(*parsed_namespace.detectors, *motor_names, ns=parsed_namespace)
+
+        if "metadata_save_file_location" not in md:
+            md["metadata_save_file_location"] = os.getcwd()
+
+        hdf_file_name, hdf_file_path = self.parse_hdf_args(parsed_namespace, "energy_gridscan_%H_%M_%S")
+
+        after_plan_behavior = self.get_after_plan_behavior_argument(parsed_namespace)
+        after_plan_target = self.get_after_plan_target_argument(parsed_namespace)
+
+        plan_args = (detectors, *args)
+        plan_kwargs = dict(
+            snake_axes=snake,
+            hdf_file_name=hdf_file_name,
+            hdf_file_path=hdf_file_path,
+            absolute=self.absolute,
+            after_plan_behavior=after_plan_behavior,
+            after_plan_target=after_plan_target,
+            using_steps_instead_of_points=False,
+            energy_ranges=energy_ranges,
+            k_ranges=k_ranges,
+            initial_energy=initial_energy,
+            md=md,
+            settling_time=settle_time,
+            acquisition_time=acq_time,
+            use_undulator=use_undulator,
+            use_crio01=use_crio01,
+            use_crio02=use_crio02,
+            use_vortex=use_vortex
+        )
+
+        return plan_args, plan_kwargs
+
+
+class PlanAbsGridEnergyScan(PlanGridEnergyScan):
+    absolute = True
+
+
+class PlanRelGridEnergyScan(PlanGridEnergyScan):
+    absolute = False
