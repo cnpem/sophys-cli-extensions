@@ -1,5 +1,3 @@
-import os
-
 from sophys.cli.core import HTTPSERVER_HOST_ENVVAR, HTTPSERVER_PORT_ENVVAR, get_cli_envvar
 
 from sophys.cli.core.magics import render_custom_magics, setup_remote_session_handler, setup_plan_magics, NamespaceKeys, add_to_namespace, get_from_namespace
@@ -8,6 +6,7 @@ from sophys.cli.core.magics.plan_magics import get_plans, ModeOfOperation, PlanI
 from sophys.cli.core.magics.tools_magics import KBLMagics, HTTPMagics, MiscMagics, SophysLiveViewMagics
 
 from sophys.cli.core.magics.sample_plan_definitions import PlanMV, PlanCount, PlanScan, PlanGridScan, PlanAdaptiveScan
+from .plans import PlanXAS, PlanMesh, PlanHardwareScan, PlanHardwareGridScan, PlanSetEnergy, PlanSetScale, PlanRIXS, PlanRIXSEMap, PlanMoveManipulator
 
 
 PLAN_WHITELIST = PlanWhitelist(*[
@@ -16,6 +15,15 @@ PLAN_WHITELIST = PlanWhitelist(*[
     PlanInformation("scan", "scan", PlanScan),
     PlanInformation("grid_scan", "grid_scan", PlanGridScan),
     PlanInformation("adaptive_scan", "adaptive_scan", PlanAdaptiveScan),
+    PlanInformation("xas", "xas", PlanXAS),
+    PlanInformation("mesh", "ascan", PlanMesh),
+    PlanInformation("scan_by_hardware", "scan_by_hardware", PlanHardwareScan),
+    PlanInformation("grid_scan_by_hardware", "grid_scan_by_hardware", PlanHardwareGridScan),
+    PlanInformation("set_energy", "set_energy", PlanSetEnergy),
+    PlanInformation("set_scale", "set_scale", PlanSetScale),
+    PlanInformation("rixs", "rixs", PlanRIXS),
+    PlanInformation("rixs_emap", "rixs_emap", PlanRIXSEMap),
+    PlanInformation("move_manipulator", "move_manipulator", PlanMoveManipulator),
 ])
 
 
