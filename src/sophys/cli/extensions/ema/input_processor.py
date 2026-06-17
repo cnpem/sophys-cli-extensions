@@ -2,6 +2,8 @@ import functools
 import logging
 import typing
 
+from natsort import natsorted
+
 from sophys.cli.core.data_source import DataSource
 from sophys.cli.core.magics.plan_magics import PlanInformation
 
@@ -13,7 +15,7 @@ def add_detectors(line: str, source: DataSource, plan_information: typing.Option
             return line
 
     plan_name, _, args = line.partition(' ')
-    detectors_str = " ".join(source.get(DataSource.DataType.DETECTORS))
+    detectors_str = " ".join(natsorted(source.get(DataSource.DataType.DETECTORS)))
     return f"{line.rstrip()} -d {detectors_str}"
 
 
