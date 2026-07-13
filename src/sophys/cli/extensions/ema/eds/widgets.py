@@ -18,15 +18,16 @@ def label(text, alignment=Qt.AlignHCenter):
 
 
 class SourcedCheckBox(QCheckBox):
-    def __init__(self, data_source: DataSource, type: DataSource.DataType, keys: tuple[str], parent=None):
+    def __init__(self, data_source: DataSource, type: DataSource.DataType | str, keys: tuple[str, ...] | None, parent=None):
         super().__init__(parent)
 
         self._data_source = data_source
         self._data_type = type
         self._keys = keys
 
-        if any(key in self._data_source.get(type) for key in self._keys):
-            self.setChecked(True)
+        if self._keys is not None:
+            if any(key in self._data_source.get(type) for key in self._keys):
+                self.setChecked(True)
 
         self.toggled.connect(self.onToggle)
 

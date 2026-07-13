@@ -36,45 +36,45 @@ class DeviceItem:
     roi_type: typing.Optional[DeviceROIType] = 0
     roi_count: typing.Optional[int] = 4
 
-    extra_mnemonics: typing.Optional[dict[DataSource.DataType, tuple[str]]] = None
+    extra_mnemonics: typing.Optional[dict[str, dict[DataSource.DataType | str, tuple[str, ...]]]] = None
 
-    def get_all_mnemonics(self, data_type: DataSource.DataType) -> tuple[str]:
+    def get_all_mnemonics(self, data_type: DataSource.DataType) -> tuple[str, ...]:
         if self.extra_mnemonics is None:
             return (self.mnemonic,)
-        return (self.mnemonic, *self.extra_mnemonics.get(data_type, tuple()))
+
+        extra_mnemonics: list[str] = [
+            mnemonic
+            for mnemonic in self.extra_mnemonics.get("_", dict()).get(
+                data_type, tuple()
+            )
+        ]
+
+        return (
+            self.mnemonic,
+            *extra_mnemonics,
+        )
 
 
-__VORTEX_EXTRA_MNEMONICS = {
-    DataSource.DataType.DETECTORS: (
-        "xrf1r1", "xrf1r2", "xrf1r3", "xrf1r4", #"xrf1r5", "xrf1r6",
-        "xrf2r1", "xrf2r2", "xrf2r3", "xrf2r4", #"xrf2r5", "xrf2r6",
-        "xrf3r1", "xrf3r2", "xrf3r3", "xrf3r4", #"xrf3r5", "xrf3r6",
-        "xrf4r1", "xrf4r2", "xrf4r3", "xrf4r4", #"xrf4r5", "xrf4r6",
-    ),
-    DataSource.DataType.BEFORE: (
-        "xrf1r1h", "xrf1r1l", "xrf1r2h", "xrf1r2l", "xrf1r3h", "xrf1r3l",
-        "xrf1r4h", "xrf1r4l", #"xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
-        "xrf2r1h", "xrf2r1l", "xrf2r2h", "xrf2r2l", "xrf2r3h", "xrf2r3l",
-        "xrf2r4h", "xrf2r4l", #"xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
-        "xrf3r1h", "xrf3r1l", "xrf3r2h", "xrf3r2l", "xrf3r3h", "xrf3r3l",
-        "xrf3r4h", "xrf3r4l", #"xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
-        "xrf4r1h", "xrf4r1l", "xrf4r2h", "xrf4r2l", "xrf4r3h", "xrf4r3l",
-        "xrf4r4h", "xrf4r4l", #"xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
-    ),
-    DataSource.DataType.AFTER: (
-        "xrf1r1h", "xrf1r1l", "xrf1r2h", "xrf1r2l", "xrf1r3h", "xrf1r3l",
-        "xrf1r4h", "xrf1r4l", #"xrf1r5h", "xrf1r5l", "xrf1r6h", "xrf1r6l",
-        "xrf2r1h", "xrf2r1l", "xrf2r2h", "xrf2r2l", "xrf2r3h", "xrf2r3l",
-        "xrf2r4h", "xrf2r4l", #"xrf2r5h", "xrf2r5l", "xrf2r6h", "xrf2r6l",
-        "xrf3r1h", "xrf3r1l", "xrf3r2h", "xrf3r2l", "xrf3r3h", "xrf3r3l",
-        "xrf3r4h", "xrf3r4l", #"xrf3r5h", "xrf3r5l", "xrf3r6h", "xrf3r6l",
-        "xrf4r1h", "xrf4r1l", "xrf4r2h", "xrf4r2l", "xrf4r3h", "xrf4r3l",
-        "xrf4r4h", "xrf4r4l", #"xrf4r5h", "xrf4r5l", "xrf4r6h", "xrf4r6l",
-    ),
-}
+__VORTEX_EXTRA_MNEMONICS = {}
+for channel_number in range(1, 5):
+    __VORTEX_EXTRA_MNEMONICS[f"Channel {channel_number}"] = {
+        DataSource.DataType.DETECTORS: tuple(
+            f"xrf{channel_number}r{roi_number}" for roi_number in range(1, 7)
+        ),
+        DataSource.DataType.BEFORE: tuple(
+            f"xrf{channel_number}r{roi_number}{suffix}"
+            for roi_number in range(1, 7)
+            for suffix in ("l", "h")
+        ),
+        DataSource.DataType.AFTER: tuple(
+            f"xrf{channel_number}r{roi_number}{suffix}"
+            for roi_number in range(1, 7)
+            for suffix in ("l", "h")
+        ),
+    }
 
 
-__PILATUS_EXTRA_MNEMONICS = {
+__PILATUS_EXTRA_MNEMONICS = {"_": {
     DataSource.DataType.DETECTORS: (
         "ad4r1", "ad4r2", "ad4r3", "ad4r4",
         "ad4r5", "ad4r6", "ad4r7", "ad4r8",
@@ -91,7 +91,7 @@ __PILATUS_EXTRA_MNEMONICS = {
         "ad4r1xs", "ad4r2xs", "ad4r3xs", "ad4r4xs",
         "ad4r5xs", "ad4r6xs", "ad4r7xs", "ad4r8xs",
     ),
-}
+}}
 
 
 EMA_DEVICES = [
@@ -268,17 +268,79 @@ class DeviceSelectorMainWindow(QMainWindow):
             row += 1
             layout.addItem(QSpacerItem(0, 0, QSizePolicy.Fixed, QSizePolicy.Expanding), row, 0, 1, 1)
 
+        def add_extra_to_layout_if_needed(item: DeviceItem, layout: QGridLayout):
+            if item.extra_mnemonics is  None or len(item.extra_mnemonics) <= 1:
+                return
+
+            parent_row = layout.rowCount() - 2
+
+            before_checkbox_parent = layout.itemAtPosition(parent_row, 3).widget()
+            during_checkbox_parent = layout.itemAtPosition(parent_row, 6).widget()
+            after_checkbox_parent = layout.itemAtPosition(parent_row, 9).widget()
+
+            sub_layout = QGridLayout()
+            sub_layout.setContentsMargins(0, 0, 0, 0)
+            sub_widget = QWidget()
+            sub_widget.setLayout(sub_layout)
+            sub_widget.setObjectName(f"sub_widget_{item.mnemonic}")
+            layout.addWidget(sub_widget, layout.rowCount(), 1, 1, 10)
+
+            def set_visible():
+                before_checked = before_checkbox_parent.checkState() == Qt.CheckState.Checked
+                during_checked = during_checkbox_parent.checkState() == Qt.CheckState.Checked
+                after_checked = after_checkbox_parent.checkState() == Qt.CheckState.Checked
+
+                sub_widget.setVisible(before_checked or during_checked or after_checked)
+
+            before_checkbox_parent.stateChanged.connect(set_visible)
+            during_checkbox_parent.stateChanged.connect(set_visible)
+            after_checkbox_parent.stateChanged.connect(set_visible)
+
+            row = 0
+            for name, mnemonics in item.extra_mnemonics.items():
+                sub_layout.addWidget(label(name), row, 1, 1, 1)
+
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 2, 1, 1)
+                before_mnemonics = mnemonics.get(DataSource.DataType.BEFORE)
+                before_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.BEFORE, before_mnemonics)
+                before_checkbox_parent.stateChanged.connect(before_checkbox.setCheckState)
+                sub_layout.addWidget(before_checkbox, row, 3, 1, 1)
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 4, 1, 1)
+
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 5, 1, 1)
+                during_mnemonics = mnemonics.get(DataSource.DataType.DETECTORS)
+                during_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.DETECTORS, during_mnemonics)
+                during_checkbox_parent.stateChanged.connect(during_checkbox.setCheckState)
+                sub_layout.addWidget(during_checkbox, row, 6, 1, 1)
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 7, 1, 1)
+
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 8, 1, 1)
+                after_mnemonics = mnemonics.get(DataSource.DataType.AFTER)
+                after_checkbox = SourcedCheckBox(self._data_source, DataSource.DataType.AFTER, after_mnemonics)
+                after_checkbox_parent.stateChanged.connect(after_checkbox.setCheckState)
+                sub_layout.addWidget(after_checkbox, row, 9, 1, 1)
+                sub_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed), row, 10, 1, 1)
+
+                row += 1
+
+            set_visible()
+
         for item in EMA_DEVICES:
             if item.type & DeviceType.READABLE:
                 add_to_layout(item, readable_form)
+                add_extra_to_layout_if_needed(item, readable_form)
             if item.type & DeviceType.SETTABLE:
                 add_to_layout(item, settable_form)
+                add_extra_to_layout_if_needed(item, settable_form)
             if item.type & DeviceType.DVF:
                 add_to_layout(item, dvf_form)
+                add_extra_to_layout_if_needed(item, dvf_form)
             if item.type & DeviceType.OPTICAL_ELEMENTS:
                 add_to_layout(item, optical_elements_form)
+                add_extra_to_layout_if_needed(item, optical_elements_form)
             if item.type & DeviceType.SIMULATED and (simulated_form is not None):
                 add_to_layout(item, simulated_form)
+                add_extra_to_layout_if_needed(item, simulated_form)
 
 
 WINDOW_STYLESHEET = """
